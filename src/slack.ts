@@ -88,6 +88,8 @@ export class Slack {
           response_type: 'ephemeral',
           text: `:ok_hand: Finding activities since ${momentSince.fromNow()}`
         };
+
+        return;
       }
     }
 
