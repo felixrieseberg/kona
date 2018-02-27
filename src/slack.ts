@@ -24,7 +24,7 @@ export class Slack {
 
     // Setup periodic check (every 30m)
     this.periodicCheck();
-    setTimeout(this.periodicCheck, 1000 * 60 * 30);
+    setInterval(this.periodicCheck, 1000 * 60 * 30);
   }
 
   /**
