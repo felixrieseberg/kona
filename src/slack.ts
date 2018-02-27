@@ -1,9 +1,8 @@
 import * as Router from 'koa-router';
 import * as request from 'request-promise-native';
 import * as moment from 'moment';
-import { WebClient } from '@slack/client';
 
-import { SLACK_WEBHOOK, SLACK_TOKEN, SLACK_NAME, SLACK_ICON } from './config';
+import { SLACK_WEBHOOK } from './config';
 import { SlashCmdBody, SlackMessageAttachment, StravaActivity } from './interfaces';
 import { Strava } from './strava';
 import { metersToMiles, secondsToMinutes, metersPerSecondToMilesPace, metersPerSecondToPaceString } from './math';
@@ -19,7 +18,6 @@ export class Slack {
   private lastChecked = Date.now();
 
   constructor() {
-    this.slackClient = new WebClient(SLACK_TOKEN);
     this.stravaClient = new Strava();
     this.handleSlackIncoming = this.handleSlackIncoming.bind(this);
     this.periodicCheck = this.periodicCheck.bind(this);
@@ -166,7 +164,7 @@ export class Slack {
     const json = { attachments };
 
     try {
-      await request.post(SLACK_WEBHOOK, { json });
+      await request.post(SLACK_WEBHOOK!, { json });
     } catch (error) {
       console.log(error);
     }
