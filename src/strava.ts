@@ -13,6 +13,15 @@ export class Strava {
     'Swim': ':swimmer:',
   }
 
+  public async getActivitiesSince(timestamp: number): Promise<Array<StravaActivity>>  {
+    const activities = await this.getActivities();
+    const newActivities = activities.filter((a) => {
+      return Date.parse(a.start_date) > timestamp;
+    });
+
+    return newActivities;
+  }
+
   public async getActivities(count: number = 10): Promise<Array<StravaActivity>> {
     const allActivities: Array<StravaActivity> = [];
 

@@ -17,8 +17,10 @@ export function metersPerSecondToMilesPace(metersPerSecond: number) {
 
 export function milesPaceToString(milesPerHour: number) {
   const fraction = milesPerHour % 1;
-  const seconds = parseInt((fraction * 60).toFixed(2));
-  return `${Math.floor(milesPerHour)}:${seconds}`;
+  const seconds = parseInt((fraction * 60).toFixed(2), 10);
+  const prettySeconds = seconds < 10 ? `0${seconds}` : seconds;
+
+  return `${Math.floor(milesPerHour)}:${prettySeconds}`;
 }
 
 export function metersPerSecondToPaceString(metersPerSecond: number) {

@@ -8,6 +8,9 @@ const help = multiline.stripIndent(() => {
     > `/blob recent`
     To get the last 15 activities (max 50):
     > `/blob recent 15`
+    To get activities since February 3rd 2018:
+    > `/blob recent 2018-02-03`
+    :point_up: If you're a date nerd, this will support all ISO 8601 formats.
   */
 });
 
@@ -19,5 +22,12 @@ export async function postHelp(ctx: Koa.Context) {
   ctx.body = {
     response_type: 'ephemeral',
     text: `:sports_medal: It seems like you asked for help :ambulance:. Here's how to do things:\n\n${help}`,
+  };
+}
+
+export async function postDidNotWork(ctx: Koa.Context) {
+  ctx.body = {
+    response_type: 'ephemeral',
+    text: ':sadness: Hm, that did not work. Type `/blob help` for help.'
   };
 }
