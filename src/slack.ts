@@ -28,6 +28,31 @@ export class Slack {
   }
 
   /**
+   * Handles incoming Slack webhook requests
+   *
+   * @param {Router.IRouterContext} ctx
+   * @param {() => Promise<any>} next
+   */
+  public async handleSlackIncoming(ctx: Router.IRouterContext, next: () => Promise<any>) {
+    const { response_url, token } = (ctx.request.body || {}) as SlashCmdBody;
+    const { text } = ctx.request.body as SlashCmdBody;
+
+    if (isHelpRequest(text)) {
+      return postHelp(ctx);
+    }
+
+    if (text.trim().includes('recent')) {
+      return this.handleRecentRequest(ctx, text.trim());
+    }
+
+    if (text.trim().includes('update last checked')) {
+      return this.handleUpdateRequest(ctx, text.trim());
+    }
+
+    return postDidNotWork(ctx);
+  }
+
+  /**
    * This thing runs every now and then and checks for new activities
    */
   private async periodicCheck() {
@@ -42,28 +67,36 @@ export class Slack {
   }
 
   /**
-   * Handles incoming Slack webhook requests
+   * Handles incoming Slack webhook requests for "update"
    *
    * @param {Router.IRouterContext} ctx
    * @param {() => Promise<any>} next
    */
-  public async handleSlackIncoming(ctx: Router.IRouterContext, next: () => Promise<any>) {
-    const { response_url, token } = (ctx.request.body || {}) as SlashCmdBody;
-    const { text } = ctx.request.body as SlashCmdBody;
+  private async handleUpdateRequest(ctx: Router.IRouterContext, text: string) {
+    const updateSince = /update last checked (.*)$/i;
 
-    if (isHelpRequest(text)) {
-      return await postHelp(ctx);
+    if (updateSince.test(text)) {
+      const sinceMatch = text.match(updateSince);
+      const since = sinceMatch && sinceMatch.length > 1 ? sinceMatch[1] : undefined;
+      const momentSince = moment(since);
+
+      if (momentSince && momentSince.isValid()) {
+        this.lastChecked = momentSince.toDate().getTime();
+        this.periodicCheck();
+
+        ctx.body = {
+          response_type: 'ephemeral',
+          text: `:ok_hand: Finding activities since ${momentSince.fromNow()}`
+        };
+      }
     }
 
-    if (text.trim().includes('recent')) {
-      return await this.handleRecentRequest(ctx, text.trim());
-    }
-
-    return await postDidNotWork(ctx);
+    // Welp, let's post help
+    return postDidNotWork(ctx);
   }
 
   /**
-   * Handles incoming Slack webhook requests
+   * Handles incoming Slack webhook requests for "recent"
    *
    * @param {Router.IRouterContext} ctx
    * @param {() => Promise<any>} next
@@ -75,7 +108,7 @@ export class Slack {
     if (simpleRecent.test(text)) {
       const countMatch = text.match(simpleRecent);
       const count = countMatch && countMatch.length > 1 ? parseInt(countMatch[1], 10) : 10;
-      return await this.postRecentActivities(ctx, count);
+      return this.postRecentActivities(ctx, count);
     }
 
     if (recentSince.test(text)) {
@@ -84,12 +117,12 @@ export class Slack {
       const momentSince = moment(since);
 
       if (momentSince && momentSince.isValid()) {
-        return await this.postActivitiesSince(ctx, momentSince);
+        return this.postActivitiesSince(ctx, momentSince);
       }
     }
 
     // Welp, let's post help
-    return await postDidNotWork(ctx);
+    return postDidNotWork(ctx);
   }
 
   /**
@@ -152,7 +185,7 @@ export class Slack {
         title: `${emoji} ${distance} miles at a ${pace} pace. ${achievements}`,
         title_link: `https://www.strava.com/activities/${a.id}`
       };
-    })
+    });
   }
 
   /**
