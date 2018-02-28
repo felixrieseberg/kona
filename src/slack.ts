@@ -171,7 +171,7 @@ export class Slack {
     const simpleRecent = /recent (\d*)$/i;
     const recentSince = /recent since (.*)$/i;
 
-    if (simpleRecent.test(text)) {
+    if (simpleRecent.test(text) || text === 'recent') {
       const countMatch = text.match(simpleRecent);
       const count = countMatch && countMatch.length > 1 ? parseInt(countMatch[1], 10) : 10;
       return this.postRecentActivities(ctx, count);
@@ -179,7 +179,15 @@ export class Slack {
 
     if (recentSince.test(text)) {
       const sinceMatch = text.match(recentSince);
-      const since = sinceMatch && sinceMatch.length > 1 ? sinceMatch[1] : undefined;
+      let since: number | string | undefined = sinceMatch && sinceMatch.length > 1
+        ? sinceMatch[1]
+        : undefined;
+
+      // Is since just a bunch of numbers and possibly a timestamp?
+      if (since && /^\d{9,13}$/.test(since)) {
+        since = parseInt(since, 10);
+      }
+
       const momentSince = moment(since);
 
       if (momentSince && momentSince.isValid()) {
