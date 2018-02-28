@@ -114,9 +114,9 @@ export class Slack {
       .map((v, i) => {
         // Even number, is timestamp
         if (i % 2 === 0) {
-          return `\n${moment(v).fromNow()} `;
+          return `\n${moment(v).fromNow()} (${v}) -`;
         } else {
-          return ` (${v} activities found)`;
+          return ` ${v} activities found.`;
         }
       }).join('');
 
