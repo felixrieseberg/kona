@@ -1,6 +1,7 @@
 import * as Router from 'koa-router';
 import * as request from 'request-promise-native';
 import * as moment from 'moment';
+import * as multiline from 'multiline';
 
 import { SLACK_WEBHOOK } from './config';
 import { SlashCmdBody, SlackMessageAttachment, StravaActivity } from './interfaces';
@@ -16,6 +17,9 @@ export class Slack {
   private slackClient: any;
   private stravaClient: Strava;
   private lastChecked = Date.now();
+
+  // Format: [timestamp, count, timestamp, count, ...]
+  private checkLog: Array<number> = [];
 
   constructor() {
     this.stravaClient = new Strava();
@@ -41,6 +45,10 @@ export class Slack {
       return postHelp(ctx);
     }
 
+    if (text.trim().includes('debug')) {
+      return this.handleDebugRequest(ctx);
+    }
+
     if (text.trim().includes('recent')) {
       return this.handleRecentRequest(ctx, text.trim());
     }
@@ -53,17 +61,73 @@ export class Slack {
   }
 
   /**
+   * Adds a periodic check to the checkLog, allowing the debug
+   * command to figure out what happened when.
+   *
+   * @param {number} timestamp
+   * @param {number} count
+   */
+  private addToLastCheckedLog(timestamp: number, count: number) {
+    if (this.checkLog.length > 100) {
+      this.checkLog = this.checkLog.slice(2);
+    }
+
+    this.checkLog.push(timestamp, count);
+  }
+
+  /**
    * This thing runs every now and then and checks for new activities
    */
   private async periodicCheck() {
     const activities = await this.stravaClient.getActivitiesSince(this.lastChecked);
     console.log(`Found ${activities.length} since we last checked (which was ${this.lastChecked})`);
 
-    if (activities && activities.length > 0) {
+    if (activities.length > 0) {
       this.postToChannel(this.formatActivities(activities));
     }
 
+    this.addToLastCheckedLog(Date.now(), activities.length);
     this.lastChecked = Date.now();
+  }
+
+  /**
+   * Handles incoming Slack webhook requests for "debug"
+   *
+   * @param {Router.IRouterContext} ctx
+   * @param {() => Promise<any>} next
+   */
+  private async handleDebugRequest(ctx: Router.IRouterContext) {
+    let text: string = multiline.stripIndent(() => {
+      /*
+        *:hammer_and_wrench: Debug Information*
+
+        _Process Information_
+        Up since $UPTIME | Node: $NODE_VERSION
+
+        _Last 50 Checks_
+        $LASTCHECKS
+      */
+    });
+
+    const uptime = moment.duration(process.uptime() * -1, 'seconds').humanize(true);
+    const lastChecks = this.checkLog
+      .map((v, i) => {
+        // Even number, is count
+        if (i % 2 === 0) {
+          return ` (${v} activities found)`;
+        } else {
+          return `\n${moment(v).fromNow()} `;
+        }
+      }).join('');
+
+    text = text.replace('$UPTIME', uptime);
+    text = text.replace('$NODE_VERSION', `v${process.version}`);
+    text = text.replace('$LASTCHECKS', lastChecks);
+
+    ctx.body = {
+      response_type: 'ephemeral',
+      text
+    };
   }
 
   /**

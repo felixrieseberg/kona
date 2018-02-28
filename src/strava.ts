@@ -7,11 +7,11 @@ import { StravaActivity, StringMap } from './interfaces';
 const listActivities = promisify(strava.clubs.listActivities);
 
 export class Strava {
-  public emoji: StringMap<String> = {
-    'Ride': ':bike:',
-    'Run': ':runner:',
-    'Swim': ':swimmer:',
-  }
+  public emoji: StringMap<string> = {
+    Ride: ':bike:',
+    Run: ':runner:',
+    Swim: ':swimmer:',
+  };
 
   public async getActivitiesSince(timestamp: number): Promise<Array<StravaActivity>>  {
     const activities = await this.getActivities();
