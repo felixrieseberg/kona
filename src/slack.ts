@@ -112,16 +112,16 @@ export class Slack {
     const uptime = moment.duration(process.uptime() * -1, 'seconds').humanize(true);
     const lastChecks = this.checkLog
       .map((v, i) => {
-        // Even number, is count
+        // Even number, is timestamp
         if (i % 2 === 0) {
-          return ` (${v} activities found)`;
-        } else {
           return `\n${moment(v).fromNow()} `;
+        } else {
+          return ` (${v} activities found)`;
         }
       }).join('');
 
     text = text.replace('$UPTIME', uptime);
-    text = text.replace('$NODE_VERSION', `v${process.version}`);
+    text = text.replace('$NODE_VERSION', `${process.version}`);
     text = text.replace('$LASTCHECKS', lastChecks);
 
     ctx.body = {
