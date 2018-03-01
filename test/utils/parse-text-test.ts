@@ -17,7 +17,7 @@ describe('findDateTime', () => {
   });
 
   it('correctly finds a date element', () => {
-    const expected = moment(1519821037000);
+    const expected = moment('2018-02-28T14:30:37');
     const output = findDateTime('2018-02-28T14:30:37');
 
     expect(expected.isSame(output)).toBe(true);
