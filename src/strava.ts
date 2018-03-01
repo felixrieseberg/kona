@@ -1,49 +1,69 @@
 import * as strava from 'strava-v3';
 import { promisify } from 'util';
+import * as moment from 'moment';
+import * as fs from 'fs';
 
 import { STRAVA_CLUBS, STRAVA_TOKEN } from './config';
 import { StravaActivity, StringMap } from './interfaces';
 
 const listActivities = promisify(strava.clubs.listActivities);
 
-export class Strava {
-  public emoji: StringMap<string> = {
-    Ride: ':bike:',
-    Run: ':runner:',
-    Swim: ':swimmer:',
-  };
+export const STRAVA_TIME_FORMAT = 'YYYY-MM-DDTHH:mm:SSZ';
 
-  public async getActivitiesSince(timestamp: number): Promise<Array<StravaActivity>>  {
-    const activities = await this.getActivities();
-    const newActivities = activities.filter((a) => {
-      return Date.parse(a.start_date) > timestamp;
-    });
+export const SPORTS_EMOJI: StringMap<string> = {
+  Ride: ':bike:',
+  Run: ':runner:',
+  Swim: ':swimmer:',
+};
 
-    return newActivities;
-  }
+/**
+ * Return activities since a certain moment
+ *
+ * @export
+ * @param {moment.Moment} since
+ * @returns {Promise<Array<StravaActivity>>}
+ */
+export async function getActivitiesSince(since: moment.Moment): Promise<Array<StravaActivity>>  {
+  const activities = await getActivities();
+  const newActivities = activities.filter((a) => {
+    // The date format we get from Strava is:
+    // 2018-02-28T15:57:07Z
+    // YYYY-MM-DDTHH:mm:SSZ
+    const formattedDate = moment(a.start_date, STRAVA_TIME_FORMAT);
+    return moment(a.start_date).isSameOrAfter(since);
+  });
 
-  public async getActivities(count: number = 10): Promise<Array<StravaActivity>> {
-    const allActivities: Array<StravaActivity> = [];
+  return newActivities;
+}
 
-    for (const club of STRAVA_CLUBS) {
-      const { id } = club;
-      const options = { access_token: STRAVA_TOKEN, per_page: count, id };
+/**
+ * Return activities
+ *
+ * @export
+ * @param {number} [count=10]
+ * @returns {Promise<Array<StravaActivity>>}
+ */
+export async function getActivities(count: number = 10): Promise<Array<StravaActivity>> {
+  const allActivities: Array<StravaActivity> = [];
 
-      try {
-        const activities: Array<StravaActivity> = await listActivities(options);
+  for (const club of STRAVA_CLUBS) {
+    const { id } = club;
+    const options = { access_token: STRAVA_TOKEN, per_page: count, id };
 
-        if (!activities || activities.length === 0) {
-          console.log(`No activities found.`);
-          continue;
-        }
+    try {
+      const activities: Array<StravaActivity> = await listActivities(options);
 
-        console.log(`${activities.length} activities found`);
-        allActivities.push(...activities);
-      } catch (error) {
-        console.error(`Failed to fetch activities`, error);
+      if (!activities || activities.length === 0) {
+        console.log(`No activities found.`);
+        continue;
       }
-    }
 
-    return allActivities;
+      console.log(`${activities.length} activities found`);
+      allActivities.push(...activities);
+    } catch (error) {
+      console.error(`Failed to fetch activities`, error);
+    }
   }
+
+  return allActivities.slice(0, count);
 }

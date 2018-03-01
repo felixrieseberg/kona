@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node .",
     "debug": "node --nolazy --inspect-brk=9229 .",
-    "test": "tslint src/**/*.ts -c tslint.json --project tsconfig.json --type-check",
+    "jest": "jest",
+    "test": "tslint src/**/*.ts -c tslint.json --project tsconfig.json && jest",
     "live": "nodemon --config nodemon.json",
     "postinstall": "tsc -p ."
   },
@@ -30,6 +31,7 @@
     "strava-v3": "^1.14.0"
   },
   "devDependencies": {
+    "@types/jest": "^22.1.4",
     "@types/koa": "^2.0.44",
     "@types/koa-bodyparser": "^4.2.0",
     "@types/koa-logger": "^3.1.0",
@@ -38,9 +40,22 @@
     "@types/koa-static": "^3.0.1",
     "@types/lodash": "^4.14.104",
     "@types/request-promise-native": "^1.0.13",
+    "jest": "^22.4.2",
     "nodemon": "~1.15.1",
+    "ts-jest": "^22.4.0",
     "tslint": "~5.9.1",
     "tslint-microsoft-contrib": "~5.0.3",
     "typescript": "~2.7.2"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/test/.*|-(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ]
   }
 }

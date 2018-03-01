@@ -5,9 +5,10 @@ import * as multiline from 'multiline';
 
 import { SLACK_WEBHOOK } from './config';
 import { SlashCmdBody, SlackMessageAttachment, StravaActivity } from './interfaces';
-import { Strava } from './strava';
+import { getActivities, getActivitiesSince, SPORTS_EMOJI } from './strava';
 import { metersToMiles, secondsToMinutes, metersPerSecondToMilesPace, metersPerSecondToPaceString } from './math';
 import { isHelpRequest, postHelp, postDidNotWork } from './help';
+import { isRecent, isRecentSince } from './utils/parse-text';
 
 interface StringMap<T> {
   [x: string]: T;
@@ -15,14 +16,12 @@ interface StringMap<T> {
 
 export class Slack {
   private slackClient: any;
-  private stravaClient: Strava;
-  private lastChecked = Date.now();
+  private lastChecked = moment();
 
   // Format: [timestamp, count, timestamp, count, ...]
   private checkLog: Array<number> = [];
 
   constructor() {
-    this.stravaClient = new Strava();
     this.handleSlackIncoming = this.handleSlackIncoming.bind(this);
     this.periodicCheck = this.periodicCheck.bind(this);
 
@@ -64,30 +63,31 @@ export class Slack {
    * Adds a periodic check to the checkLog, allowing the debug
    * command to figure out what happened when.
    *
-   * @param {number} timestamp
+   * @param {moment.Moment} now
    * @param {number} count
    */
-  private addToLastCheckedLog(timestamp: number, count: number) {
+  private addToLastCheckedLog(now: moment.Moment, count: number) {
     if (this.checkLog.length > 100) {
       this.checkLog = this.checkLog.slice(2);
     }
 
-    this.checkLog.push(timestamp, count);
+    this.checkLog.push(now.valueOf(), count);
   }
 
   /**
    * This thing runs every now and then and checks for new activities
    */
   private async periodicCheck() {
-    const activities = await this.stravaClient.getActivitiesSince(this.lastChecked);
+    const activities = await getActivitiesSince(this.lastChecked);
+    const now = moment();
     console.log(`Found ${activities.length} since we last checked (which was ${this.lastChecked})`);
 
     if (activities.length > 0) {
       this.postToChannel(this.formatActivities(activities));
     }
 
-    this.addToLastCheckedLog(Date.now(), activities.length);
-    this.lastChecked = Date.now();
+    this.addToLastCheckedLog(now, activities.length);
+    this.lastChecked = moment();
   }
 
   /**
@@ -114,7 +114,7 @@ export class Slack {
       .map((v, i) => {
         // Even number, is timestamp
         if (i % 2 === 0) {
-          return `\n${moment(v).fromNow()} (\`${v}\`) -`;
+          return `\n${moment(v).format('MM/DD HH:mm')} (\`${v}\`) -`;
         } else {
           return ` ${v} activities found.`;
         }
@@ -145,7 +145,7 @@ export class Slack {
       const momentSince = moment(since);
 
       if (momentSince && momentSince.isValid()) {
-        this.lastChecked = momentSince.toDate().getTime();
+        this.lastChecked = moment();
         this.periodicCheck();
 
         ctx.body = {
@@ -168,31 +168,14 @@ export class Slack {
    * @param {() => Promise<any>} next
    */
   private async handleRecentRequest(ctx: Router.IRouterContext, text: string) {
-    const simpleRecent = /recent (\d*)$/i;
-    const recentSince = /recent since (.*)$/i;
-
-    if (simpleRecent.test(text) || text === 'recent') {
-      const countMatch = text.match(simpleRecent);
-      const count = countMatch && countMatch.length > 1 ? parseInt(countMatch[1], 10) : 10;
-      return this.postRecentActivities(ctx, count);
+    const isRecentCheck = isRecent(text);
+    if (isRecentCheck.isRecent) {
+      return this.postRecentActivities(ctx, isRecentCheck.count);
     }
 
-    if (recentSince.test(text)) {
-      const sinceMatch = text.match(recentSince);
-      let since: number | string | undefined = sinceMatch && sinceMatch.length > 1
-        ? sinceMatch[1]
-        : undefined;
-
-      // Is since just a bunch of numbers and possibly a timestamp?
-      if (since && /^\d{9,13}$/.test(since)) {
-        since = parseInt(since, 10);
-      }
-
-      const momentSince = moment(since);
-
-      if (momentSince && momentSince.isValid()) {
-        return this.postActivitiesSince(ctx, momentSince);
-      }
+    const isRecentSinceCheck = isRecentSince(text);
+    if (isRecentSinceCheck.isRecentSince) {
+      return this.postActivitiesSince(ctx, isRecentSinceCheck.since);
     }
 
     // Welp, let's post help
@@ -205,9 +188,9 @@ export class Slack {
    * @param {Router.IRouterContext} ctx
    * @param {number} [count]
    */
-  private async postActivitiesSince(ctx: Router.IRouterContext, ts: moment.Moment) {
-    const activities = await this.stravaClient.getActivitiesSince(ts.toDate().getTime());
-    const text = `:sports_medal: *The last activities since ${ts.fromNow()}:*`
+  private async postActivitiesSince(ctx: Router.IRouterContext, since: moment.Moment) {
+    const activities = await getActivitiesSince(since);
+    const text = `:sports_medal: *The last activities since ${since.fromNow()}:*`
     const attachments = this.formatActivities(activities).slice(0, 25);
 
     ctx.body = {
@@ -224,7 +207,7 @@ export class Slack {
    * @param {number} [count]
    */
   private async postRecentActivities(ctx: Router.IRouterContext, count?: number) {
-    const activities = await this.stravaClient.getActivities(50);
+    const activities = await getActivities(50);
     const text = `:sports_medal: *The last ${count} activities:*`
     const attachments = this.formatActivities(activities).slice(0, count);
 
@@ -243,7 +226,7 @@ export class Slack {
    */
   private formatActivities(input: Array<StravaActivity>): Array<SlackMessageAttachment> {
     return input.map((a) => {
-      const emoji = this.stravaClient.emoji[a.type] || a.type;
+      const emoji = SPORTS_EMOJI[a.type] || a.type;
       const distance = metersToMiles(a.distance);
       const time = secondsToMinutes(a.moving_time);
       const pace = metersPerSecondToPaceString(a.average_speed);

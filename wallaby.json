@@ -1,0 +1,19 @@
+{
+  "files": [
+    "tsconfig.json",
+    "src/**/*.ts",
+    "test/**/*.json"
+  ],
+  "tests": [
+    "test/**/*.ts"
+  ],
+
+  "env": {
+    "type": "node",
+    "runner": "node"
+  },
+
+  "testFramework": "jest",
+
+  "debug": true
+}
