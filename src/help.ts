@@ -1,7 +1,8 @@
 import * as multiline from 'multiline';
 import * as Koa from 'koa';
+import { BB_SLACK_SLASH_COMMAND } from './config';
 
-const help = multiline.stripIndent(() => {
+const help = (multiline.stripIndent(() => {
   /*
     *:runner: Recent activities*
     To just get the recent activities:
@@ -11,8 +12,16 @@ const help = multiline.stripIndent(() => {
     To get activities since February 3rd 2018:
     > `/blob recent 2018-02-03`
     :point_up: If you're a date nerd, this will support all ISO 8601 formats.
+
+    *:robot_face: Operations*
+    To check for new activities now:
+    > `/blob check now`
+    To see debug output:
+    > `/blob debug`
+    To see this help output:
+    > `/blob help`
   */
-});
+}) as string).replace(/\/blob/g, BB_SLACK_SLASH_COMMAND);
 
 export function isHelpRequest(text: string) {
   return !!(text.trim() === '' || /(help)|(🚑)|(👩‍🚒)|(🚨)|(👨‍🚒)|(🚒)|(\?)$/i.test(text.trim()));

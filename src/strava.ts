@@ -15,7 +15,8 @@ export const SPORTS_EMOJI: StringMap<string> = {
   Run: ':runner:',
   Swim: ':swimmer:',
   VirtualRide: ':computer::bike:',
-  VirtualRun: ':computer::runner:'
+  VirtualRun: ':computer::runner:',
+  Walk: ':walking:'
 };
 
 /**

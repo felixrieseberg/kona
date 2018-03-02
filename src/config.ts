@@ -22,7 +22,11 @@ export const BB_MONGO_DB_NAME = process.env.BB_MONGO_DB_NAME;
 
 // Optional configuration
 
-// The interval at which the bot will check Strava for new activites, in minutes
+// The interval at which the bot will check Strava for new activities, in minutes
 export const BB_CHECK_INTERVAL = process.env.BB_CHECK_INTERVAL
   ? parseInt(process.env.BB_CHECK_INTERVAL, 10)
   : 15;
+
+// The name of the slash command.
+// Example: '/blob'
+export const BB_SLACK_SLASH_COMMAND = process.env.BB_SLACK_SLASH_COMMAND || '/blob';

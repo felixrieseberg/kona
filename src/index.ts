@@ -14,8 +14,7 @@ const slack = new Slack();
 
 app.use(bodyparser());
 app.use(koaJson());
-
-if (process.env.LOG_DESKTOP_HTTP || true) app.use(logger());
+app.use(logger());
 
 router.get('/', async (ctx: Router.IRouterContext, next: () => Promise<any>) => {
   ctx.body = 'Hi 🙋';

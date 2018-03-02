@@ -7,6 +7,17 @@ activities directly in Slack.
 
 It uses Node.js and MongoDB.
 
+## Available Commands
+
+*:runner: Recent activities*
+To just get the recent activities:
+> `/blob recent`
+To get the last 15 activities (max 50):
+> `/blob recent 15`
+To get activities since February 3rd 2018:
+> `/blob recent 2018-02-03`
+:point_up: If you're a date nerd, this will support all ISO 8601 formats.
+
 ## Installation & Configuration
 
 The following environment variables need to be set for the app to work properly.
