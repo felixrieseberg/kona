@@ -34,7 +34,7 @@ export async function postDebug(ctx: Router.IRouterContext, checkLog: Array<numb
   text = text.replace('$UPTIME', uptime);
   text = text.replace('$NODE_VERSION', `${process.version}`);
   text = text.replace('$LASTCHECKS', lastChecks);
-  text = text.replace('$CONNECTION', `Connected: database.isConnected()`);
+  text = text.replace('$CONNECTION', `Connected: ${database.isConnected()}`);
 
   ctx.body = {
     response_type: 'ephemeral',
