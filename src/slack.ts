@@ -87,7 +87,7 @@ export class Slack {
     }
 
     this.addToLastCheckedLog(now, activities.length);
-    this.lastChecked = moment();
+    this.lastChecked = now;
   }
 
   /**
@@ -232,7 +232,7 @@ export class Slack {
       const pace = metersPerSecondToPaceString(a.average_speed);
       const achievements = a.achievement_count > 0
         ? `:trophy: ${a.achievement_count} achievements!`
-        : `Not a single achievement :disapproval:.`;
+        : '';
 
       return {
         fallback: '',
