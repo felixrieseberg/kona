@@ -7,7 +7,7 @@ import { SlashCmdBody, SlackMessageAttachment, StravaActivity, StravaClubWithMem
 import { getActivities, getActivitiesSince, SPORTS_EMOJI, getMembers } from './strava';
 import { metersToMiles, secondsToMinutes, metersPerSecondToMilesPace, metersPerSecondToPaceString } from './math';
 import { isHelpRequest, postHelp, postDidNotWork } from './help';
-import { isRecent, isRecentSince } from './utils/parse-text';
+import { isRecent, isRecentSince, isMembers } from './utils/parse-text';
 import { database } from './database';
 import { postDebug } from './debug';
 
@@ -55,6 +55,10 @@ export class Slack {
 
     if (text.trim().includes('check now')) {
       return this.handleCheckNowRequest(ctx);
+    }
+
+    if (isMembers(text)) {
+      return this.handleMembersRequest(ctx);
     }
 
     return postDidNotWork(ctx);

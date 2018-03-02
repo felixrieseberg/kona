@@ -26,6 +26,16 @@ export function isRecentSince(input: string): { isRecentSince: boolean; since: m
 }
 
 /**
+ * Is this a request to list members?
+ *
+ * @param {string} input
+ * @returns {boolean}
+ */
+export function isMembers(input: string): boolean {
+  return input.trim().includes('members') || input.trim().includes('athletes');
+}
+
+/**
  * Is this a command from `/blob recent`?
  *
  * @export

@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { findDateTime, isRecent, isRecentSince } from '../../src/utils/parse-text';
+import { findDateTime, isRecent, isRecentSince, isMembers } from '../../src/utils/parse-text';
 
 describe('findDateTime', () => {
   it('correctly finds a timestamp (clean data)', () => {
@@ -67,5 +67,19 @@ describe('isRecent', () => {
   it('correctly identifies a different command', () => {
     const output = isRecent('  debug ');
     expect(output).toEqual({ isRecent: false, count: 0 });
+  });
+});
+
+describe('isMembers', () => {
+  it('correctly identifies a "members" command', () => {
+    expect(isMembers('  members ')).toEqual(true);
+  });
+
+  it('correctly identifies an "athletes" command', () => {
+    expect(isMembers('  athletes ')).toEqual(true);
+  });
+
+  it('correctly identifies a different command', () => {
+    expect(isMembers('recent since')).toEqual(false);
   });
 });
