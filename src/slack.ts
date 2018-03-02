@@ -9,6 +9,7 @@ import { getActivities, getActivitiesSince, SPORTS_EMOJI } from './strava';
 import { metersToMiles, secondsToMinutes, metersPerSecondToMilesPace, metersPerSecondToPaceString } from './math';
 import { isHelpRequest, postHelp, postDidNotWork } from './help';
 import { isRecent, isRecentSince } from './utils/parse-text';
+import { database } from './database';
 
 interface StringMap<T> {
   [x: string]: T;
@@ -26,7 +27,7 @@ export class Slack {
     this.periodicCheck = this.periodicCheck.bind(this);
 
     // Setup periodic check (every 30m)
-    this.periodicCheck();
+    setTimeout(this.periodicCheck, 2500);
     setInterval(this.periodicCheck, 1000 * 60 * 30);
   }
 
@@ -78,15 +79,30 @@ export class Slack {
    * This thing runs every now and then and checks for new activities
    */
   private async periodicCheck() {
-    const activities = await getActivitiesSince(this.lastChecked);
     const now = moment();
-    console.log(`Found ${activities.length} since we last checked (which was ${this.lastChecked})`);
+    const nowMinues10 = now.subtract(10, 'days');
+    const activities = await getActivitiesSince(nowMinues10);
+    const activitiesToPost = [];
 
-    if (activities.length > 0) {
-      this.postToChannel(this.formatActivities(activities));
+    console.log(`Found ${activities.length} since ${nowMinues10.valueOf()}`);
+
+    // We now have the activities for the last ten days. Which ones
+    // did we already post?
+    for (const activity of activities) {
+      const alreadyPosted = await database.hasActivity({ id: activity.id });
+      console.log(`Acitivty ${activity.id} known: ${!!alreadyPosted}`);
+
+      if (!alreadyPosted) {
+        activitiesToPost.push(activity);
+      }
     }
 
-    this.addToLastCheckedLog(now, activities.length);
+    if (activitiesToPost.length > 0) {
+      await this.postToChannel(this.formatActivities(activities));
+      await database.addActivities(activitiesToPost.map((a) => ({ id: a.id })));
+    }
+
+    this.addToLastCheckedLog(now, activitiesToPost.length);
     this.lastChecked = now;
   }
 
@@ -253,8 +269,13 @@ export class Slack {
   private async postToChannel(attachments: Array<SlackMessageAttachment>) {
     const json = { attachments };
 
+    if (!SLACK_WEBHOOK) {
+      console.warn(`No Slack webhook configured, not posting`);
+      return;
+    }
+
     try {
-      await request.post(SLACK_WEBHOOK!, { json });
+      await request.post(SLACK_WEBHOOK, { json });
     } catch (error) {
       console.log(error);
     }
