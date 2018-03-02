@@ -1,4 +1,4 @@
-# Blob Bot (A Strava Slack Bot)
+# Blob Bot (A Strava Slack Bot)`
 [![Build Status](https://travis-ci.org/felixrieseberg/blob-bot.svg?branch=master)](https://travis-ci.org/felixrieseberg/blob-bot)
 
 This is a Slack Bot that automatically posts activities for a Strava Club into
@@ -15,29 +15,29 @@ All these settings can also be configured in `src/config.ts`.
 ```
 // Slack Webhook URL
 // Example: 'https://hooks.slack.com/services/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'
-SLACK_WEBHOOK
+BB_SLACK_WEBHOOK
 
 // JSON Array of Strava Clubs to follow
 // Example: '[{ "id": "336978" }]'
-STRAVA_CLUBS
+BB_STRAVA_CLUBS
 
 // Strava Access Token
 // Example: '9834bh234jh2hiu3jh23j4hsdfshjj2bh3bjh23a'
-STRAVA_TOKEN
+BB_STRAVA_TOKEN
 
 // MongoDB Connection String
 // Example: 'mongodb://blob:sdf@sdfsdf2.mlab.com:53958/blobbot'
-MONGO_STRING
+BB_MONGO_STRING
 
 // MongoDB Database Name
 // Example: 'blobbot'
-MONGO_DB_NAME
+BB_MONGO_DB_NAME
 ```
 
 #### Configuring the Strava Integration
 
 Vist https://www.strava.com/settings/api and create a new API application.
-Copy the "Access Token" and set it as the `STRAVA_TOKEN` environment variable.
+Copy the "Access Token" and set it as the `BB_STRAVA_TOKEN` environment variable.
 
 #### Configuring the Slack App
 

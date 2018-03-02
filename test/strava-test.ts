@@ -9,8 +9,8 @@ jest.mock('strava-v3', () => ({
   }
 }));
 jest.mock('../src/config', () => ({
-  STRAVA_CLUBS: [{ id: 336978 }],
-  STRAVA_TOKEN: '123'
+  BB_STRAVA_CLUBS: [{ id: 336978 }],
+  BB_STRAVA_TOKEN: '123'
 }));
 
 describe('getActivities', () => {

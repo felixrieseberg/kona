@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import * as moment from 'moment';
 import * as fs from 'fs';
 
-import { STRAVA_CLUBS, STRAVA_TOKEN } from './config';
+import { BB_STRAVA_CLUBS, BB_STRAVA_TOKEN } from './config';
 import { StravaActivity, StringMap } from './interfaces';
 
 const listActivities = promisify(strava.clubs.listActivities);
@@ -48,9 +48,9 @@ export async function getActivitiesSince(since: moment.Moment): Promise<Array<St
 export async function getActivities(count: number = 10): Promise<Array<StravaActivity>> {
   const allActivities: Array<StravaActivity> = [];
 
-  for (const club of STRAVA_CLUBS) {
+  for (const club of BB_STRAVA_CLUBS) {
     const { id } = club;
-    const options = { access_token: STRAVA_TOKEN, per_page: count, id };
+    const options = { access_token: BB_STRAVA_TOKEN, per_page: count, id };
 
     try {
       const activities: Array<StravaActivity> = await listActivities(options);

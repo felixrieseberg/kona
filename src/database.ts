@@ -1,6 +1,6 @@
 import * as mongoDB from 'mongodb';
 import { MongoClient } from 'mongodb';
-import { MONGO_STRING, MONGO_DB_NAME } from './config';
+import { BB_MONGO_STRING, BB_MONGO_DB_NAME } from './config';
 
 export interface DatabaseActivity {
   id: number
@@ -21,8 +21,8 @@ export class MongoDB {
    * @returns {boolean}
    */
   public isConnected(): boolean {
-    if (!MONGO_DB_NAME) return false;
-    return this.client.isConnected(MONGO_DB_NAME);
+    if (!BB_MONGO_DB_NAME) return false;
+    return this.client.isConnected(BB_MONGO_DB_NAME);
   }
 
   /**
@@ -71,15 +71,15 @@ export class MongoDB {
    * @memberof MongoDB
    */
   private async connect() {
-    if (!MONGO_DB_NAME || !MONGO_STRING) {
+    if (!BB_MONGO_DB_NAME || !BB_MONGO_STRING) {
       throw new Error(`MongoDB environment variables missing!`);
     }
 
     try {
       console.log(`Connecting to MongoDB database`);
 
-      this.client = await MongoClient.connect(MONGO_STRING);
-      this.db = this.client.db(MONGO_DB_NAME);
+      this.client = await MongoClient.connect(BB_MONGO_STRING);
+      this.db = this.client.db(BB_MONGO_DB_NAME);
     } catch (e) {
       console.log('Failed to connect to MongoDB');
       console.log(e);

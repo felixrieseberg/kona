@@ -2,7 +2,7 @@ import * as Router from 'koa-router';
 import * as request from 'request-promise-native';
 import * as moment from 'moment';
 
-import { SLACK_WEBHOOK } from './config';
+import { BB_SLACK_WEBHOOK, BB_CHECK_INTERVAL } from './config';
 import { SlashCmdBody, SlackMessageAttachment, StravaActivity } from './interfaces';
 import { getActivities, getActivitiesSince, SPORTS_EMOJI } from './strava';
 import { metersToMiles, secondsToMinutes, metersPerSecondToMilesPace, metersPerSecondToPaceString } from './math';
@@ -28,7 +28,7 @@ export class Slack {
 
     // Setup periodic check (every 30m)
     setTimeout(this.periodicCheck, 2500);
-    setInterval(this.periodicCheck, 1000 * 60 * 30);
+    setInterval(this.periodicCheck, 1000 * 60 * BB_CHECK_INTERVAL);
   }
 
   /**
@@ -222,13 +222,13 @@ export class Slack {
   private async postToChannel(attachments: Array<SlackMessageAttachment>) {
     const json = { attachments };
 
-    if (!SLACK_WEBHOOK) {
+    if (!BB_SLACK_WEBHOOK) {
       console.warn(`No Slack webhook configured, not posting`);
       return;
     }
 
     try {
-      await request.post(SLACK_WEBHOOK, { json });
+      await request.post(BB_SLACK_WEBHOOK, { json });
     } catch (error) {
       console.log(error);
     }
