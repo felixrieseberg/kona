@@ -1,7 +1,6 @@
 import * as Router from 'koa-router';
 import * as request from 'request-promise-native';
 import * as moment from 'moment';
-import * as multiline from 'multiline';
 
 import { SLACK_WEBHOOK } from './config';
 import { SlashCmdBody, SlackMessageAttachment, StravaActivity } from './interfaces';
@@ -10,6 +9,7 @@ import { metersToMiles, secondsToMinutes, metersPerSecondToMilesPace, metersPerS
 import { isHelpRequest, postHelp, postDidNotWork } from './help';
 import { isRecent, isRecentSince } from './utils/parse-text';
 import { database } from './database';
+import { postDebug } from './debug';
 
 interface StringMap<T> {
   [x: string]: T;
@@ -113,37 +113,7 @@ export class Slack {
    * @param {() => Promise<any>} next
    */
   private async handleDebugRequest(ctx: Router.IRouterContext) {
-    let text: string = multiline.stripIndent(() => {
-      /*
-        *:hammer_and_wrench: Debug Information*
-
-        _Process Information_
-        Up since $UPTIME | Node: $NODE_VERSION
-
-        _Last 50 Checks_
-        $LASTCHECKS
-      */
-    });
-
-    const uptime = moment.duration(process.uptime() * -1, 'seconds').humanize(true);
-    const lastChecks = this.checkLog
-      .map((v, i) => {
-        // Even number, is timestamp
-        if (i % 2 === 0) {
-          return `\n${moment(v).format('MM/DD HH:mm')} (\`${v}\`) -`;
-        } else {
-          return ` ${v} activities found.`;
-        }
-      }).join('');
-
-    text = text.replace('$UPTIME', uptime);
-    text = text.replace('$NODE_VERSION', `${process.version}`);
-    text = text.replace('$LASTCHECKS', lastChecks);
-
-    ctx.body = {
-      response_type: 'ephemeral',
-      text
-    };
+    return postDebug(ctx, this.checkLog);
   }
 
   /**

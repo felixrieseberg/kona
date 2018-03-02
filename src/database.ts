@@ -16,6 +16,16 @@ export class MongoDB {
   }
 
   /**
+   * Are we conntected?
+   *
+   * @returns {boolean}
+   */
+  public isConnected(): boolean {
+    if (!MONGO_DB_NAME) return false;
+    return this.client.isConnected(MONGO_DB_NAME);
+  }
+
+  /**
    * Does an activity exist in the database, indicating that we posted it already?
    *
    * @param {DatabaseActivity} activity
