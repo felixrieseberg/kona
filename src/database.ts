@@ -72,7 +72,9 @@ export class MongoDB {
    */
   private async connect() {
     if (!BB_MONGO_DB_NAME || !BB_MONGO_STRING) {
-      throw new Error(`MongoDB environment variables missing!`);
+      console.warn(`MongoDB environment variables missing!`);
+      console.warn(`Will not attempt to setup database`);
+      return;
     }
 
     try {

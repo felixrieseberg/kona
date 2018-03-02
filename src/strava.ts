@@ -4,9 +4,11 @@ import * as moment from 'moment';
 import * as fs from 'fs';
 
 import { BB_STRAVA_CLUBS, BB_STRAVA_TOKEN } from './config';
-import { StravaActivity, StringMap } from './interfaces';
+import { StravaActivity, StringMap, StravaClubWithMembers, StravaClub, StravaMember } from './interfaces';
 
-const listActivities = promisify(strava.clubs.listActivities);
+const listActivities = promisify(strava.clubs.listActivities as Function);
+const listMembers = promisify(strava.clubs.listMembers as Function);
+const getClub = promisify(strava.clubs.get as Function);
 
 export const STRAVA_TIME_FORMAT = 'YYYY-MM-DDTHH:mm:SSZ';
 
@@ -18,6 +20,36 @@ export const SPORTS_EMOJI: StringMap<string> = {
   VirtualRun: ':computer::runner:',
   Walk: ':walking:'
 };
+
+/**
+ * Gets members and club information
+ *
+ * @returns {Promise<Array<StravaClubWithMembers>>}
+ */
+export async function getMembers(): Promise<Array<StravaClubWithMembers>> {
+  const clubsWithMembers = [];
+
+  for (const club of BB_STRAVA_CLUBS) {
+    const { id } = club;
+    const options = { access_token: BB_STRAVA_TOKEN, per_page: 100, id };
+
+    try {
+      const club: StravaClub = await getClub(options);
+      const members: Array<StravaMember> = await listMembers(options);
+
+      console.log(club);
+      console.log(members);
+
+      if (members) {
+        clubsWithMembers.push({ club, members });
+      }
+    } catch (error) {
+      console.error(`Failed to fetch members`, error);
+    }
+  }
+
+  return clubsWithMembers;
+}
 
 /**
  * Return activities since a certain moment

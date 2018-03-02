@@ -70,6 +70,61 @@ export interface StravaActivity {
   workout_type: number;
 }
 
+export interface StravaClubWithMembers {
+  club: StravaClub;
+  members: Array<StravaMember>;
+}
+
+export interface StravaMember {
+  id: number;
+  username: string;
+  resource_state: number;
+  firstname: string;
+  lastname: string;
+  city: string;
+  state: string;
+  country: string;
+  sex: string;
+  premium: false,
+  created_at: string;
+  updated_at: string;
+  badge_type_id: number;
+  profile_medium: string;
+  profile: string;
+  friend: string;
+  follower: string;
+  membership: string;
+  admin: true,
+  owner: false
+}
+
+export interface StravaClub {
+  id: number;
+  resource_state: number;
+  name: string;
+  profile_medium: string;
+  profile: string;
+  cover_photo: null,
+  cover_photo_small: null,
+  sport_type: string;
+  city: string;
+  state: string;
+  country: string;
+  private: true,
+  member_count: 7,
+  featured: false,
+  verified: false,
+  url: string;
+  membership: string;
+  admin: true,
+  owner: false,
+  description: string;
+  club_type: string;
+  post_count: number;
+  owner_id: number;
+  following_count: number;
+}
+
 export interface SlashCmdBody {
   token: string;
   team_id: string;

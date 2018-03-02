@@ -6,7 +6,7 @@ import * as bodyparser from 'koa-bodyparser';
 import * as serve from 'koa-static';
 import * as koaJson from 'koa-json';
 import { Slack } from './slack';
-import { getActivities } from './strava';
+import { getActivities, getMembers } from './strava';
 
 const app = new Koa();
 const router = new Router();
@@ -22,6 +22,10 @@ router.get('/', async (ctx: Router.IRouterContext, next: () => Promise<any>) => 
 
 router.get('/activities', async (ctx: Router.IRouterContext, next: () => Promise<any>) => {
   ctx.body = await getActivities(20);
+});
+
+router.get('/members', async (ctx: Router.IRouterContext, next: () => Promise<any>) => {
+  ctx.body = await getMembers();
 });
 
 router.post('/webhook', slack.handleSlackIncoming);

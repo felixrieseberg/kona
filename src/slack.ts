@@ -3,8 +3,8 @@ import * as request from 'request-promise-native';
 import * as moment from 'moment';
 
 import { BB_SLACK_WEBHOOK, BB_CHECK_INTERVAL } from './config';
-import { SlashCmdBody, SlackMessageAttachment, StravaActivity } from './interfaces';
-import { getActivities, getActivitiesSince, SPORTS_EMOJI } from './strava';
+import { SlashCmdBody, SlackMessageAttachment, StravaActivity, StravaClubWithMembers } from './interfaces';
+import { getActivities, getActivitiesSince, SPORTS_EMOJI, getMembers } from './strava';
 import { metersToMiles, secondsToMinutes, metersPerSecondToMilesPace, metersPerSecondToPaceString } from './math';
 import { isHelpRequest, postHelp, postDidNotWork } from './help';
 import { isRecent, isRecentSince } from './utils/parse-text';
@@ -79,6 +79,12 @@ export class Slack {
    * This thing runs every now and then and checks for new activities
    */
   private async periodicCheck() {
+    // Don't do anythign without a database
+    if (!database.isConnected()) {
+      console.warn(`Meant to perform periodic check, but database not connected`);
+      return;
+    }
+
     const now = moment();
     const nowMinues10 = now.subtract(10, 'days');
     const activities = await getActivitiesSince(nowMinues10);
@@ -104,6 +110,23 @@ export class Slack {
 
     this.addToLastCheckedLog(now, activitiesToPost.length);
     this.lastChecked = now;
+  }
+
+  /**
+   * Check now!
+   *
+   * @param {Router.IRouterContext} ctx
+   */
+  private async handleMembersRequest(ctx: Router.IRouterContext) {
+    const clubsWithMembers = await getMembers();
+    const text = `:family: *Athletes*`
+    const attachments = this.formatClubsWithMembers(clubsWithMembers);
+
+    ctx.body = {
+      text,
+      response_type: 'ephemeral',
+      attachments
+    };
   }
 
   /**
@@ -185,6 +208,33 @@ export class Slack {
       response_type: 'in_channel',
       attachments
     };
+  }
+
+  /**
+   * Takes clubs as returned from Strava and makes them pretty
+   *
+   * @param {Array<StravaClubWithMembers>} input
+   * @returns {Array<SlackMessageAttachment>}
+   */
+  private formatClubsWithMembers(
+    input: Array<StravaClubWithMembers>
+  ): Array<SlackMessageAttachment> {
+    return input.map(({ club, members }) => {
+      const text = members.map((member) => {
+        const name = `${member.firstname} ${member.lastname}`;
+        const city = member.city ? `(${member.city})` : '';
+
+        return `${name} ${city}\n`;
+      }).join('');
+
+      return {
+        fallback: '',
+        author_name: `${club.name}, ${club.city}`,
+        author_link: `https://www.strava.com/clubs/${club.id}`,
+        author_icon: club.profile_medium,
+        text
+      };
+    });
   }
 
   /**
