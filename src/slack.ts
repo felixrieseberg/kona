@@ -98,7 +98,7 @@ export class Slack {
     }
 
     if (activitiesToPost.length > 0) {
-      await this.postToChannel(this.formatActivities(activities));
+      await this.postToChannel(this.formatActivities(activitiesToPost));
       await database.addActivities(activitiesToPost.map((a) => ({ id: a.id })));
     }
 
