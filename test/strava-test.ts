@@ -2,10 +2,18 @@ import * as moment from 'moment';
 
 jest.mock('strava-v3', () => ({
   clubs: {
+    listMembers: (options, callback) => {
+      const members = require('./mocks/members.json');
+      callback(undefined, members);
+    },
     listActivities: (options, callback) => {
       const activites = require('./mocks/activities.json');
       callback(undefined, activites);
-    }
+    },
+    get: (options, callback) => {
+      const club = require('./mocks/club.json');
+      callback(undefined, club);
+    },
   }
 }));
 jest.mock('../src/config', () => ({

@@ -6,9 +6,9 @@ import * as fs from 'fs';
 import { BB_STRAVA_CLUBS, BB_STRAVA_TOKEN } from './config';
 import { StravaActivity, StringMap, StravaClubWithMembers, StravaClub, StravaMember } from './interfaces';
 
-const listActivities = promisify(strava.clubs.listActivities as Function);
-const listMembers = promisify(strava.clubs.listMembers as Function);
-const getClub = promisify(strava.clubs.get as Function);
+const listMembers = promisify(strava.clubs.listMembers);
+const listActivities = promisify(strava.clubs.listActivities);
+const getClub = promisify(strava.clubs.get);
 
 export const STRAVA_TIME_FORMAT = 'YYYY-MM-DDTHH:mm:SSZ';
 
