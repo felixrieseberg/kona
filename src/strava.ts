@@ -37,9 +37,6 @@ export async function getMembers(): Promise<Array<StravaClubWithMembers>> {
       const club: StravaClub = await getClub(options);
       const members: Array<StravaMember> = await listMembers(options);
 
-      console.log(club);
-      console.log(members);
-
       if (members) {
         clubsWithMembers.push({ club, members });
       }

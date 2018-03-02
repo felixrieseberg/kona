@@ -13,6 +13,10 @@ const help = (multiline.stripIndent(() => {
     > `/blob recent 2018-02-03`
     :point_up: If you're a date nerd, this will support all ISO 8601 formats.
 
+    *:family: Members*
+    To get members for our clubs:
+    > `/blob members` or `/blob athletes`
+
     *:robot_face: Operations*
     To check for new activities now:
     > `/blob check now`

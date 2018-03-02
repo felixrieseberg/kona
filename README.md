@@ -7,6 +7,8 @@ activities directly in Slack.
 
 It uses Node.js and MongoDB.
 
+![screenshot](https://user-images.githubusercontent.com/1426799/36899534-33e34942-1e28-11e8-93ab-809ab0b7cc38.png)
+
 ## Available Commands
 
 *:runner: Recent activities*
@@ -18,7 +20,17 @@ To get activities since February 3rd 2018:
 > `/blob recent 2018-02-03`
 :point_up: If you're a date nerd, this will support all ISO 8601 formats.
 
+*:family: Members*
+To get members for our clubs:
+> `/blob members` or `/blob athletes`
 
+*:robot_face: Operations*
+To check for new activities now:
+> `/blob check now`
+To see debug output:
+> `/blob debug`
+To see this help output:
+> `/blob help`
 
 ## Installation & Configuration
 

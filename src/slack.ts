@@ -123,8 +123,10 @@ export class Slack {
    */
   private async handleMembersRequest(ctx: Router.IRouterContext) {
     const clubsWithMembers = await getMembers();
-    const text = `:family: *Athletes*`
     const attachments = this.formatClubsWithMembers(clubsWithMembers);
+    const text = attachments && attachments.length > 0
+      ? `:family: *Athletes*`
+      : 'You requested athletes, but we could not find any clubs';
 
     ctx.body = {
       text,
