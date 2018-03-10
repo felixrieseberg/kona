@@ -2,9 +2,9 @@ import * as Router from 'koa-router';
 import * as moment from 'moment';
 import * as multiline from 'multiline';
 
-import { database } from './database';
+import { database } from '../database';
 
-export async function postDebug(ctx: Router.IRouterContext, checkLog: Array<number>) {
+export async function handleDebugRequest(ctx: Router.IRouterContext, checkLog: Array<number>) {
   let text: string = multiline.stripIndent(() => {
     /*
       *:hammer_and_wrench: Debug Information*
@@ -36,8 +36,14 @@ export async function postDebug(ctx: Router.IRouterContext, checkLog: Array<numb
   text = text.replace('$LASTCHECKS', lastChecks);
   text = text.replace('$CONNECTION', `Connected: ${database.isConnected()}`);
 
-  ctx.body = {
-    response_type: 'ephemeral',
-    text
-  };
+  ctx.body = { response_type: 'ephemeral', text };
+}
+
+export async function getInstallations(ctx: Router.IRouterContext, next: () => Promise<any>) {
+  if (!database.isConnected()) {
+    ctx.body = { error: 'Database is not connected' };
+    return;
+  }
+
+  ctx.body = await database.getInstallations();
 }

@@ -21,6 +21,7 @@
     "no-var-requires": false,
     "no-empty": true,
     "no-empty-interface": false,
+    "no-unused-variable": true,
     "no-unused-expression": true,
     "no-reference": true,
     "no-use-before-declare": true,

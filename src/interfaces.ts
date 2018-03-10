@@ -85,7 +85,7 @@ export interface StravaMember {
   state: string;
   country: string;
   sex: string;
-  premium: false,
+  premium: false;
   created_at: string;
   updated_at: string;
   badge_type_id: number;
@@ -94,8 +94,8 @@ export interface StravaMember {
   friend: string;
   follower: string;
   membership: string;
-  admin: true,
-  owner: false
+  admin: boolean;
+  owner: false;
 }
 
 export interface StravaClub {
@@ -104,20 +104,20 @@ export interface StravaClub {
   name: string;
   profile_medium: string;
   profile: string;
-  cover_photo: null,
-  cover_photo_small: null,
+  cover_photo: null;
+  cover_photo_small: null;
   sport_type: string;
   city: string;
   state: string;
   country: string;
-  private: true,
-  member_count: 7,
-  featured: false,
-  verified: false,
+  private: true;
+  member_count: number;
+  featured: false;
+  verified: false;
   url: string;
   membership: string;
-  admin: true,
-  owner: false,
+  admin: true;
+  owner: false;
   description: string;
   club_type: string;
   post_count: number;
@@ -178,4 +178,38 @@ export interface SlackMessageAttachment {
 
 export interface StringMap<T> {
   [x: string]: T;
+}
+
+export interface SlackOAuthResponse {
+  ok: boolean;
+  access_token: string;
+  scope: string;
+  user_id: string;
+  team_name: string;
+  team_id: string;
+  incoming_webhook: {
+    channel: string;
+    channel_id: string;
+    configuration_url: string;
+    url: string;
+  };
+}
+
+export interface Installation {
+  _id?: string;
+  slack: {
+    accessToken: string;
+    userId: string;
+    teamName: string;
+    teamId: string;
+    incomingWebhook: {
+      channel: string;
+      channelId: string;
+      configurationUrl: string;
+      url: string;
+    }
+  };
+  strava: {
+    clubs: Array<number>;
+  };
 }

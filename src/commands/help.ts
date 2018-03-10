@@ -1,6 +1,6 @@
 import * as multiline from 'multiline';
 import * as Koa from 'koa';
-import { BB_SLACK_SLASH_COMMAND } from './config';
+import { BB_SLACK_SLASH_COMMAND } from '../config';
 
 const help = (multiline.stripIndent(() => {
   /*
@@ -42,5 +42,12 @@ export async function postDidNotWork(ctx: Koa.Context) {
   ctx.body = {
     response_type: 'ephemeral',
     text: ':sadness: Hm, that did not work. Type `/blob help` for help.'
+  };
+}
+
+export async function postNoClubs(ctx: Koa.Context) {
+  ctx.body = {
+    response_type: 'ephemeral',
+    text: `:no_good: We're not watching any clubs yet. Add one with \`${BB_SLACK_SLASH_COMMAND} clubs add\`!`,
   };
 }

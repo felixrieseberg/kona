@@ -1,12 +1,13 @@
 import * as Koa from 'koa';
 import * as logger from 'koa-logger';
-import * as mount from 'koa-mount';
 import * as Router from 'koa-router';
 import * as bodyparser from 'koa-bodyparser';
 import * as serve from 'koa-static';
 import * as koaJson from 'koa-json';
+
 import { Slack } from './slack';
-import { getActivities, getMembers } from './strava';
+import { authorizeSlack } from './oauth';
+import { getInstallations } from './commands/debug';
 
 const app = new Koa();
 const router = new Router();
@@ -20,13 +21,9 @@ router.get('/', async (ctx: Router.IRouterContext, next: () => Promise<any>) => 
   ctx.body = 'Hi 🙋';
 });
 
-router.get('/activities', async (ctx: Router.IRouterContext, next: () => Promise<any>) => {
-  ctx.body = await getActivities(20);
-});
+router.get('/debug/installations', getInstallations);
 
-router.get('/members', async (ctx: Router.IRouterContext, next: () => Promise<any>) => {
-  ctx.body = await getMembers();
-});
+router.get('/oauth/slack', authorizeSlack);
 
 router.post('/webhook', slack.handleSlackIncoming);
 

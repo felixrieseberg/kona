@@ -1,13 +1,17 @@
 import * as mongoDB from 'mongodb';
-import { MongoClient } from 'mongodb';
 import { BB_MONGO_STRING, BB_MONGO_DB_NAME } from './config';
+import { Installation } from './interfaces';
 
 export interface DatabaseActivity {
-  id: number
+  id: number;
+}
+
+enum Collections {
+  Activities = 'activities',
+  Installations = 'installations'
 }
 
 export class MongoDB {
-  private defaultCollection = 'activities';
   private db: mongoDB.Db;
   private client: mongoDB.MongoClient;
 
@@ -32,15 +36,13 @@ export class MongoDB {
    * @returns {Promise<boolean>}
    */
   public hasActivity(activity: DatabaseActivity): Promise<boolean> {
-    console.log(`Trying to find activity ${activity.id} in ${this.defaultCollection}`);
+    console.log(`Trying to find activity ${activity.id} in ${Collections.Activities}`);
 
-    const findOptions = { id: { $eq: activity.id } };
-
-    return database.db
-      .collection(this.defaultCollection)
+    return this.db
+      .collection(Collections.Activities)
       .findOne(activity)
       .then((response) => {
-        console.log(`Find operation result:`, response);
+        console.log(`Find activity operation result:`, response);
         return response;
       });
   }
@@ -52,17 +54,80 @@ export class MongoDB {
    * @returns {Promise<void>}
    */
   public addActivities(activities: Array<DatabaseActivity>) {
-    console.log(`Adding ${activities.length} activities to ${this.defaultCollection}`);
+    console.log(`Adding ${activities.length} activities to ${Collections.Activities}`);
 
-    return database.db
-      .collection(this.defaultCollection)
+    return this.db
+      .collection(Collections.Activities)
       .insertMany(activities)
       .then((response) => {
         if (response && response.ops && response.ops.length > 0) {
-          console.log(`Insert operation result:`, response.ops);
+          console.log(`Insert activity operation result:`, response.ops);
           return response.ops[0];
         }
       });
+  }
+
+  /**
+   * Add an installation to the database
+   *
+   * @param {Installation} installation
+   * @returns {Promise<void>}
+   */
+  public addInstallation(installation: Installation) {
+    console.log(`Adding an installation to ${Collections.Installations}`);
+
+    return this.db
+      .collection(Collections.Installations)
+      .insertOne(installation)
+      .then((response) => {
+        if (response && response.ops && response.ops.length > 0) {
+          console.log(`Insert activity operation result:`, response.ops);
+          return response.ops[0];
+        }
+      });
+  }
+
+  /**
+   * Returns installations
+   *
+   * @returns {Promise<Array<Installation>>}
+   * @memberof MongoDB
+   */
+  public getInstallations(): Promise<Array<Installation>> {
+    console.log(`Getting installations`);
+
+    return this.db
+      .collection(Collections.Installations)
+      .find({ })
+      .toArray();
+  }
+
+  /**
+   * Get installation for a single team
+   *
+   * @returns {Promise<Installation>}
+   * @memberof MongoDB
+   */
+  public getInstallationForTeam(teamId: string): Promise<Installation | null> {
+    console.log(`Getting installation for team ${teamId}`);
+
+    return this.db
+      .collection(Collections.Installations)
+      .findOne({ 'slack.teamId': teamId });
+  }
+
+  public async updateInstallation(installation: Installation): Promise<boolean> {
+    if (!installation._id) {
+      console.warn(`Tried to update installation, but data was missing _id field`);
+      return false;
+    }
+
+    console.log(`Updating installation`, { mongoId: installation._id, team: installation.slack.teamId });
+
+    return this.db
+      .collection(Collections.Installations)
+      .updateOne({ _id: installation._id }, { $set: installation })
+      .then((response) => !!response.result.ok);
   }
 
   /**
@@ -80,8 +145,10 @@ export class MongoDB {
     try {
       console.log(`Connecting to MongoDB database`);
 
-      this.client = await MongoClient.connect(BB_MONGO_STRING);
+      this.client = await mongoDB.MongoClient.connect(BB_MONGO_STRING);
       this.db = this.client.db(BB_MONGO_DB_NAME);
+
+      console.log(`MongoDB connection established`);
     } catch (e) {
       console.log('Failed to connect to MongoDB');
       console.log(e);

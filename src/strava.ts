@@ -1,9 +1,8 @@
 import * as strava from 'strava-v3';
 import { promisify } from 'util';
 import * as moment from 'moment';
-import * as fs from 'fs';
 
-import { BB_STRAVA_CLUBS, BB_STRAVA_TOKEN } from './config';
+import { BB_STRAVA_TOKEN } from './config';
 import { StravaActivity, StringMap, StravaClubWithMembers, StravaClub, StravaMember } from './interfaces';
 
 const listMembers = promisify(strava.clubs.listMembers);
@@ -26,11 +25,10 @@ export const SPORTS_EMOJI: StringMap<string> = {
  *
  * @returns {Promise<Array<StravaClubWithMembers>>}
  */
-export async function getMembers(): Promise<Array<StravaClubWithMembers>> {
+export async function getMembers(clubs: Array<number>): Promise<Array<StravaClubWithMembers>> {
   const clubsWithMembers = [];
 
-  for (const club of BB_STRAVA_CLUBS) {
-    const { id } = club;
+  for (const id of clubs) {
     const options = { access_token: BB_STRAVA_TOKEN, per_page: 100, id };
 
     try {
@@ -55,14 +53,10 @@ export async function getMembers(): Promise<Array<StravaClubWithMembers>> {
  * @param {moment.Moment} since
  * @returns {Promise<Array<StravaActivity>>}
  */
-export async function getActivitiesSince(since: moment.Moment): Promise<Array<StravaActivity>>  {
-  const activities = await getActivities();
+export async function getActivitiesSince(since: moment.Moment, clubs: Array<number>): Promise<Array<StravaActivity>>  {
+  const activities = await getActivities(clubs, 10);
   const newActivities = activities.filter((a) => {
-    // The date format we get from Strava is:
-    // 2018-02-28T15:57:07Z
-    // YYYY-MM-DDTHH:mm:SSZ
-    const formattedDate = moment(a.start_date, STRAVA_TIME_FORMAT);
-    return moment(a.start_date).isSameOrAfter(since);
+    return moment(a.start_date, STRAVA_TIME_FORMAT).isSameOrAfter(since);
   });
 
   return newActivities;
@@ -75,25 +69,24 @@ export async function getActivitiesSince(since: moment.Moment): Promise<Array<St
  * @param {number} [count=10]
  * @returns {Promise<Array<StravaActivity>>}
  */
-export async function getActivities(count: number = 10): Promise<Array<StravaActivity>> {
+export async function getActivities(clubs: Array<number>, count: number = 10): Promise<Array<StravaActivity>> {
   const allActivities: Array<StravaActivity> = [];
 
-  for (const club of BB_STRAVA_CLUBS) {
-    const { id } = club;
+  for (const id of clubs) {
     const options = { access_token: BB_STRAVA_TOKEN, per_page: count, id };
 
     try {
       const activities: Array<StravaActivity> = await listActivities(options);
 
       if (!activities || activities.length === 0) {
-        console.log(`No activities found.`);
+        console.log(`${id}: No activities found.`);
         continue;
       }
 
-      console.log(`${activities.length} activities found`);
+      console.log(`${id}: ${activities.length} activities found`);
       allActivities.push(...activities);
     } catch (error) {
-      console.error(`Failed to fetch activities`, error);
+      console.error(`${id}: Failed to fetch activities`, error);
     }
   }
 

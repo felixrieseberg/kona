@@ -2,23 +2,21 @@ import * as Router from 'koa-router';
 import * as request from 'request-promise-native';
 import * as moment from 'moment';
 
-import { BB_SLACK_WEBHOOK, BB_CHECK_INTERVAL } from './config';
-import { SlashCmdBody, SlackMessageAttachment, StravaActivity, StravaClubWithMembers } from './interfaces';
-import { getActivities, getActivitiesSince, SPORTS_EMOJI, getMembers } from './strava';
-import { metersToMiles, secondsToMinutes, metersPerSecondToMilesPace, metersPerSecondToPaceString } from './math';
-import { isHelpRequest, postHelp, postDidNotWork } from './help';
-import { isRecent, isRecentSince, isMembers } from './utils/parse-text';
+import { BB_CHECK_INTERVAL, BB_DISABLE_CHECK } from './config';
+import { SlashCmdBody, SlackMessageAttachment, Installation } from './interfaces';
+import { getActivitiesSince } from './strava';
+import { isMembers } from './utils/parse-text';
+import { formatActivities } from './utils/format-activities';
 import { database } from './database';
-import { postDebug } from './debug';
 
-interface StringMap<T> {
-  [x: string]: T;
-}
+import { isHelpRequest, postHelp, postDidNotWork } from './commands/help';
+import { handleClubRequest } from './commands/club';
+import { handleDebugRequest } from './commands/debug';
+import { handleMembersRequest } from './commands/members';
+import { handleRecentRequest } from './commands/recent';
+
 
 export class Slack {
-  private slackClient: any;
-  private lastChecked = moment();
-
   // Format: [timestamp, count, timestamp, count, ...]
   private checkLog: Array<number> = [];
 
@@ -27,8 +25,12 @@ export class Slack {
     this.periodicCheck = this.periodicCheck.bind(this);
 
     // Setup periodic check (every 30m)
-    setTimeout(this.periodicCheck, 2500);
-    setInterval(this.periodicCheck, 1000 * 60 * BB_CHECK_INTERVAL);
+    if (!BB_DISABLE_CHECK) {
+      setTimeout(this.periodicCheck, 2500);
+      setInterval(this.periodicCheck, 1000 * 60 * BB_CHECK_INTERVAL);
+    } else {
+      console.log(`Regular check is disabled`);
+    }
   }
 
   /**
@@ -38,101 +40,33 @@ export class Slack {
    * @param {() => Promise<any>} next
    */
   public async handleSlackIncoming(ctx: Router.IRouterContext, next: () => Promise<any>) {
-    const { response_url, token } = (ctx.request.body || {}) as SlashCmdBody;
-    const { text } = ctx.request.body as SlashCmdBody;
+    const text = ((ctx.request.body as SlashCmdBody).text || '').trim();
 
     if (isHelpRequest(text)) {
       return postHelp(ctx);
     }
 
-    if (text.trim().includes('debug')) {
-      return this.handleDebugRequest(ctx);
+    if (text.startsWith('clubs')) {
+      return handleClubRequest(ctx, text);
     }
 
-    if (text.trim().includes('recent')) {
-      return this.handleRecentRequest(ctx, text.trim());
+    if (text.includes('debug')) {
+      return handleDebugRequest(ctx, this.checkLog);
     }
 
-    if (text.trim().includes('check now')) {
+    if (text.includes('recent')) {
+      return handleRecentRequest(ctx, text);
+    }
+
+    if (text.includes('check now')) {
       return this.handleCheckNowRequest(ctx);
     }
 
     if (isMembers(text)) {
-      return this.handleMembersRequest(ctx);
+      return handleMembersRequest(ctx);
     }
 
     return postDidNotWork(ctx);
-  }
-
-  /**
-   * Adds a periodic check to the checkLog, allowing the debug
-   * command to figure out what happened when.
-   *
-   * @param {moment.Moment} now
-   * @param {number} count
-   */
-  private addToLastCheckedLog(now: moment.Moment, count: number) {
-    if (this.checkLog.length > 100) {
-      this.checkLog = this.checkLog.slice(2);
-    }
-
-    this.checkLog.push(now.valueOf(), count);
-  }
-
-  /**
-   * This thing runs every now and then and checks for new activities
-   */
-  private async periodicCheck() {
-    // Don't do anythign without a database
-    if (!database.isConnected()) {
-      console.warn(`Meant to perform periodic check, but database not connected`);
-      return;
-    }
-
-    const now = moment();
-    const nowMinues10 = now.subtract(10, 'days');
-    const activities = await getActivitiesSince(nowMinues10);
-    const activitiesToPost = [];
-
-    console.log(`Found ${activities.length} since ${nowMinues10.valueOf()}`);
-
-    // We now have the activities for the last ten days. Which ones
-    // did we already post?
-    for (const activity of activities) {
-      const alreadyPosted = await database.hasActivity({ id: activity.id });
-      console.log(`Acitivty ${activity.id} known: ${!!alreadyPosted}`);
-
-      if (!alreadyPosted) {
-        activitiesToPost.push(activity);
-      }
-    }
-
-    if (activitiesToPost.length > 0) {
-      await this.postToChannel(this.formatActivities(activitiesToPost));
-      await database.addActivities(activitiesToPost.map((a) => ({ id: a.id })));
-    }
-
-    this.addToLastCheckedLog(now, activitiesToPost.length);
-    this.lastChecked = now;
-  }
-
-  /**
-   * Check now!
-   *
-   * @param {Router.IRouterContext} ctx
-   */
-  private async handleMembersRequest(ctx: Router.IRouterContext) {
-    const clubsWithMembers = await getMembers();
-    const attachments = this.formatClubsWithMembers(clubsWithMembers);
-    const text = attachments && attachments.length > 0
-      ? `:family: *Athletes*`
-      : 'You requested athletes, but we could not find any clubs';
-
-    ctx.body = {
-      text,
-      response_type: 'ephemeral',
-      attachments
-    };
   }
 
   /**
@@ -150,124 +84,69 @@ export class Slack {
   }
 
   /**
-   * Handles incoming Slack webhook requests for "debug"
+   * Adds a periodic check to the checkLog, allowing the debug
+   * command to figure out what happened when.
    *
-   * @param {Router.IRouterContext} ctx
-   * @param {() => Promise<any>} next
+   * @param {moment.Moment} now
+   * @param {number} count
    */
-  private async handleDebugRequest(ctx: Router.IRouterContext) {
-    return postDebug(ctx, this.checkLog);
-  }
-
-  /**
-   * Handles incoming Slack webhook requests for "recent"
-   *
-   * @param {Router.IRouterContext} ctx
-   * @param {() => Promise<any>} next
-   */
-  private async handleRecentRequest(ctx: Router.IRouterContext, text: string) {
-    const isRecentCheck = isRecent(text);
-    if (isRecentCheck.isRecent) {
-      return this.postRecentActivities(ctx, isRecentCheck.count);
+  private addToLastCheckedLog(now: moment.Moment, count: number) {
+    if (this.checkLog.length > 100) {
+      this.checkLog = this.checkLog.slice(2);
     }
 
-    const isRecentSinceCheck = isRecentSince(text);
-    if (isRecentSinceCheck.isRecentSince) {
-      return this.postActivitiesSince(ctx, isRecentSinceCheck.since);
+    this.checkLog.push(now.valueOf(), count);
+  }
+
+  private async periodicCheck() {
+    // Don't do anythign without a database
+    if (!database.isConnected()) {
+      console.warn(`Meant to perform periodic check, but database not connected`);
+      return;
     }
 
-    // Welp, let's post help
-    return postDidNotWork(ctx);
+    try {
+      const installations = await database.getInstallations();
+
+      for (const installation of installations) {
+        await this.periodicCheckForInstallation(installation);
+      }
+    } catch (error) {
+      console.log(`Periodic check error`, error);
+    }
   }
 
   /**
-   * Posts recent activities in response to a Slack WebHook request
+   * This thing runs every now and then and checks for new activities
    *
-   * @param {Router.IRouterContext} ctx
-   * @param {number} [count]
+   * @param {Installation} installation
    */
-  private async postActivitiesSince(ctx: Router.IRouterContext, since: moment.Moment) {
-    const activities = await getActivitiesSince(since);
-    const text = `:sports_medal: *The last activities since ${since.fromNow()}:*`
-    const attachments = this.formatActivities(activities).slice(0, 25);
+  private async periodicCheckForInstallation(installation: Installation) {
+    const now = moment();
+    const nowMinus7 = now.subtract(7, 'days');
+    const { strava } = installation;
+    const activities = await getActivitiesSince(nowMinus7, strava.clubs);
+    const activitiesToPost = [];
 
-    ctx.body = {
-      text,
-      response_type: 'in_channel',
-      attachments
-    };
-  }
+    console.log(`Found ${activities.length} since ${nowMinus7.valueOf()}`);
 
-  /**
-   * Posts recent activities in response to a Slack WebHook request
-   *
-   * @param {Router.IRouterContext} ctx
-   * @param {number} [count]
-   */
-  private async postRecentActivities(ctx: Router.IRouterContext, count?: number) {
-    const activities = await getActivities(50);
-    const text = `:sports_medal: *The last ${count} activities:*`
-    const attachments = this.formatActivities(activities).slice(0, count);
+    // We now have the activities for the last 7 days. Which ones did we already post?
+    for (const activity of activities) {
+      const alreadyPosted = await database.hasActivity({ id: activity.id });
+      console.log(`Acitivty ${activity.id} known: ${!!alreadyPosted}`);
 
-    ctx.body = {
-      text,
-      response_type: 'in_channel',
-      attachments
-    };
-  }
+      if (!alreadyPosted) {
+        activitiesToPost.push(activity);
+      }
+    }
 
-  /**
-   * Takes clubs as returned from Strava and makes them pretty
-   *
-   * @param {Array<StravaClubWithMembers>} input
-   * @returns {Array<SlackMessageAttachment>}
-   */
-  private formatClubsWithMembers(
-    input: Array<StravaClubWithMembers>
-  ): Array<SlackMessageAttachment> {
-    return input.map(({ club, members }) => {
-      const text = members.map((member) => {
-        const name = `${member.firstname} ${member.lastname}`;
-        const city = member.city ? `(${member.city})` : '';
+    if (activitiesToPost.length > 0) {
+      await this.postToChannel(installation, formatActivities(activitiesToPost));
+      await database.addActivities(activitiesToPost.map((a) => ({ id: a.id })));
+    }
 
-        return `${name} ${city}\n`;
-      }).join('');
-
-      return {
-        fallback: '',
-        author_name: `${club.name}, ${club.city}`,
-        author_link: `https://www.strava.com/clubs/${club.id}`,
-        author_icon: club.profile_medium,
-        text
-      };
-    });
-  }
-
-  /**
-   * Format a Strava activity
-   *
-   * @param {Array<StravaActivity>} input
-   * @returns {Array<SlackMessageAttachment>}
-   */
-  private formatActivities(input: Array<StravaActivity>): Array<SlackMessageAttachment> {
-    return input.map((a) => {
-      const emoji = SPORTS_EMOJI[a.type] || a.type;
-      const distance = metersToMiles(a.distance);
-      const time = secondsToMinutes(a.moving_time);
-      const pace = metersPerSecondToPaceString(a.average_speed);
-      const achievements = a.achievement_count > 0
-        ? `:trophy: ${a.achievement_count} achievements!`
-        : '';
-
-      return {
-        fallback: '',
-        author_name: `${a.athlete.firstname} ${a.athlete.lastname}`,
-        author_link: `https://www.strava.com/athletes/${a.athlete.username}`,
-        author_icon: a.athlete.profile,
-        title: `${emoji} ${distance} miles at a ${pace} pace. ${achievements}`,
-        title_link: `https://www.strava.com/activities/${a.id}`
-      };
-    });
+    this.addToLastCheckedLog(now, activitiesToPost.length);
+    this.lastChecked = now;
   }
 
   /**
@@ -275,16 +154,17 @@ export class Slack {
    *
    * @param {Array<SlackMessageAttachment>} attachments
    */
-  private async postToChannel(attachments: Array<SlackMessageAttachment>) {
+  private async postToChannel(installation: Installation, attachments: Array<SlackMessageAttachment>) {
     const json = { attachments };
+    const { slack } = installation;
 
-    if (!BB_SLACK_WEBHOOK) {
-      console.warn(`No Slack webhook configured, not posting`);
+    if (!slack.incomingWebhook.url) {
+      console.warn(`Team ${slack.teamId}: No Slack webhook configured, not posting`);
       return;
     }
 
     try {
-      await request.post(BB_SLACK_WEBHOOK, { json });
+      await request.post(slack.incomingWebhook.url, { json });
     } catch (error) {
       console.log(error);
     }
