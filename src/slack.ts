@@ -146,7 +146,6 @@ export class Slack {
     }
 
     this.addToLastCheckedLog(now, activitiesToPost.length);
-    this.lastChecked = now;
   }
 
   /**

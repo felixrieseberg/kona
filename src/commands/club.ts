@@ -3,6 +3,7 @@ import * as Router from 'koa-router';
 import { Installation } from '../interfaces';
 import { database } from '../database';
 import { BB_SLACK_SLASH_COMMAND } from '../config';
+import { postHelp } from './help';
 
 const addRegex = /clubs (add|watch|include) (\d{0,10})/i;
 const removeRegex = /clubs (remove|unwatch|exclude) (\d{0,10})/i;
@@ -126,7 +127,9 @@ export async function handleClubRequest(ctx: Router.IRouterContext, input: strin
 
     if (!installation) throw new Error('Installation not found');
 
-    if (addRegex.test(input)) {
+    if (text.includes('help')) {
+      return postHelp(ctx);
+    } else if (addRegex.test(input)) {
       text = await addClub(installation, input);
     } else if (removeRegex.test(input)) {
       text = await removeClub(installation, input);

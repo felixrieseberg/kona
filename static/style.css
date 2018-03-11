@@ -1,0 +1,63 @@
+html, body{
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-image: url('./img/bg-1.jpg');
+  background-position: center center;
+  background-repeat:  no-repeat;
+  background-attachment: fixed;
+  background-size:  cover;
+
+  font-family: 'Fira Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #fff;
+  text-shadow: 2px 2px 2px rgb(46, 46, 46, .5);
+}
+
+a, a:visited, a:active {
+  color: #fff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.more-information {
+  width: 500px;
+  background-color: #fff;
+  color: #333;
+  padding: 10px 15px;
+  border-radius: 5px;
+  text-shadow: none;
+}
+
+.more-information a {
+  color: #444444;
+}
+
+#add-to-slack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#logo {
+  height: 100px;
+}
+
+#more-and-credits {
+  padding-bottom: 25px;
+}
+

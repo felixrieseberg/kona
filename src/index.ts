@@ -17,10 +17,6 @@ app.use(bodyparser());
 app.use(koaJson());
 app.use(logger());
 
-router.get('/', async (ctx: Router.IRouterContext, next: () => Promise<any>) => {
-  ctx.body = 'Hi 🙋';
-});
-
 router.get('/debug/installations', getInstallations);
 
 router.get('/oauth/slack', authorizeSlack);
