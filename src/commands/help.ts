@@ -33,22 +33,6 @@ const help = (multiline.stripIndent(() => {
   */
 }) as string).replace(/\/kona/g, BB_SLACK_SLASH_COMMAND);
 
-// tslint:disable:max-line-length
-const clubHelp = (multiline.stripIndent(() => {
-  /*
-    Before Kona can do anything, you will need to tell Kona which Strava clubs to watch.
-
-    Due to limitations in the Strava API, Kona needs to know the clubs `id`. If you already know your clubs `id`, simply enter `/kona clubs add` followed by the clubs `id` number. If you don't know, read on for a short tutorial.
-
-    - Head over to https://www.strava.com/clubs to see your Strava clubs.
-    - Click on a club of your choice, taking you to the club's Strava dashboard.
-    - Click on any of the club's links, like "Club Leaderboard", "Recent Activity", or "Members".
-    - Your browser's url should now be `https://www.strava.com/clubs/` followed by a number. That's your club's `id`. If your url is `https://www.strava.com/clubs/336978/recent_activity`, your club's `id` is 336978.
-    - In Slack, enter `/kona clubs add` followed by the clubs `id` number - for instance `/kona clubs add 336978`.
-  */
-}) as string).replace(/\/kona/g, BB_SLACK_SLASH_COMMAND);
-// tslint:enable:max-line-length
-
 export async function postHelp(ctx: Koa.Context) {
   ctx.body = {
     response_type: 'ephemeral',
@@ -56,23 +40,9 @@ export async function postHelp(ctx: Koa.Context) {
   };
 }
 
-export async function postClubHelp(ctx: Koa.Context) {
-  ctx.body = {
-    response_type: 'ephemeral',
-    text: `:sports_medal: It seems like you asked for help :ambulance:. Here's how to do things:\n\n${clubHelp}`,
-  };
-}
-
 export async function postDidNotWork(ctx: Koa.Context) {
   ctx.body = {
     response_type: 'ephemeral',
     text: ':sadness: Hm, that did not work. Type `/blob help` for help.'
-  };
-}
-
-export async function postNoClubs(ctx: Koa.Context) {
-  ctx.body = {
-    response_type: 'ephemeral',
-    text: `:no_good: We're not watching any clubs yet. Add one with \`${BB_SLACK_SLASH_COMMAND} clubs add\`!`,
   };
 }

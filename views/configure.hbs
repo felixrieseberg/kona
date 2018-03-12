@@ -1,15 +1,43 @@
 {{#> layoutBase}}
   <h2>Strava Clubs</h2>
   {{#if clubs}}
-    <p>Kona is currently watching the following Strava clubs for you. To add a club, please type <code>/kona help</code> into the message input in Slack.</p>
-    {{#each clubs as |club|}}
-      <div class="strava-club">
-        <a href="https://strava.com/clubs/{{club.id}}" target="_blank">
-          <h4>{{club.name}}{{#if club.city}}, {{club.city}}{{/if}}</h4>
-        </a>
-      </div>
-    {{/each}}
+    <p>Kona is currently watching the following Strava clubs for you.</p>
+    <ul>
+      {{#each clubs as |club|}}
+        <li>
+          <a href="/?unwatch={{club.id}}">Stop Watching</a> -
+          <a href="https://strava.com/clubs/{{club.id}}" target="_blank">
+            {{club.name}}{{#if club.city}}, {{club.city}}{{/if}}
+          </a>
+        </li>
+      {{/each}}
+    </ul>
   {{else}}
-    <p>Almost done! Now, tell Kona which Strava Clubs to watch. To add a club, please type <code>/kona help</code> into the message input in Slack.</p>
+    <p>Almost done! Now, tell Kona which Strava Clubs to watch.</p>
+  {{/if}}
+
+  <h2>Watch More Clubs</h2>
+  {{#if stravaFirstName}}
+    <p>You're connected to Strava as {{stravaFirstName}}. Would you like Kona to start watching any of your clubs?</p>
+    {{#if stravaClubs}}
+      <ul>
+        {{#each stravaClubs as |club|}}
+          <li>
+            <a href="/?watch={{club.id}}">Watch</a> -
+            <a href="https://strava.com/clubs/{{club.id}}" target="_blank">
+              {{club.name}}{{#if club.city}}, {{club.city}}{{/if}}
+            </a>
+          </li>
+        {{/each}}
+      </ul>
+    {{else}}
+      {{#if hasNoClubs}}
+        <p>It appears that you're not a member of any Strava clubs...</p>
+      {{else}}
+        <p>We're already watching all your clubs!</p>
+      {{/if}}
+    {{/if}}
+  {{else}}
+    {{> stravaAdd}}
   {{/if}}
 {{/layoutBase}}

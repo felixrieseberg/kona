@@ -220,6 +220,42 @@ export interface SlackOAuthSigninResponse {
   };
 }
 
+export interface StravaOAuthResponse {
+  access_token: string;
+  token_type: string;
+  athlete: {
+    id: number;
+    username: string;
+    resource_state: number;
+    firstname: string;
+    lastname: string;
+    city: string;
+    state: string;
+    country: string;
+    sex: string;
+    premium: false,
+    created_at: string;
+    updated_at: string;
+    badge_type_id: number;
+    profile_medium: string;
+    profile: string;
+    friend: string;
+    follower: string;
+    email: string;
+  };
+}
+
+export interface Athelete {
+  id: number;
+  accessToken: string;
+  firstName: string;
+}
+
+export interface InstallationClub {
+  token: string;
+  id: number;
+}
+
 export interface Installation {
   _id?: string;
   slack: {
@@ -235,6 +271,6 @@ export interface Installation {
     }
   };
   strava: {
-    clubs: Array<number>;
+    clubs: Array<InstallationClub>;
   };
 }

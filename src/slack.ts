@@ -12,7 +12,6 @@ import { database } from './database';
 import {
   postHelp,
   postDidNotWork,
-  handleClubRequest,
   handleDebugRequest,
   handleMembersRequest,
   handleRecentRequest,
@@ -46,10 +45,6 @@ export class Slack {
 
     if (isHelpRequest(text)) {
       return postHelp(ctx);
-    }
-
-    if (text.startsWith('clubs')) {
-      return handleClubRequest(ctx, text);
     }
 
     if (text.includes('debug')) {

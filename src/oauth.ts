@@ -1,10 +1,10 @@
 import * as Router from 'koa-router';
 import * as request from 'request-promise-native';
 
-import { BB_SLACK_CLIENT_ID, BB_SLACK_CLIENT_SECRET } from './config';
-import { SlackOAuthInstallationResponse, SlackOAuthResponse } from './interfaces';
+import { BB_SLACK_CLIENT_ID, BB_SLACK_CLIENT_SECRET, BB_STRAVA_CLIENT_ID, BB_STRAVA_CLIENT_SECRET } from './config';
+import { SlackOAuthInstallationResponse, SlackOAuthResponse, StravaOAuthResponse } from './interfaces';
 import { database } from './database';
-import { assignCookiesAndState } from './utils/auth';
+import { assignCookiesAndStateSlack, assignCookiesAndStateStrava } from './utils/auth';
 
 export function getOptionsFromSlackData(data: SlackOAuthInstallationResponse) {
   return {
@@ -26,6 +26,13 @@ export function getOptionsFromSlackData(data: SlackOAuthInstallationResponse) {
   };
 }
 
+/**
+ * 3-Legged OAuth flow for Slack: The user clicked the button and was redirected back
+ * to Kona by Slack. We're handling that redirect.
+ *
+ * @param {Router.IRouterContext} ctx
+ * @param {() => Promise<any>} next
+ */
 export async function authorizeSlack(ctx: Router.IRouterContext, next: () => Promise<any>) {
   const isSignIn = ctx.query.state === 'signin';
   const data = {
@@ -43,7 +50,7 @@ export async function authorizeSlack(ctx: Router.IRouterContext, next: () => Pro
     console.log(`Received OAuth response from Slack. OK: ${!!parsed.ok}`);
 
     if (parsed && parsed.ok) {
-      assignCookiesAndState(ctx, parsed);
+      assignCookiesAndStateSlack(ctx, parsed);
 
       // Only add this anstallation to the database if it's actually
       // an installation
@@ -57,6 +64,38 @@ export async function authorizeSlack(ctx: Router.IRouterContext, next: () => Pro
     }
   } catch (error) {
     console.warn(`Slack OAuth failed`, error);
+  }
+
+  return ctx.redirect('/');
+}
+
+/**
+ * 3-Legged OAuth flow for Strava: The user clicked the button and was redirected back
+ * to Kona by Strava. We're handling that redirect.
+ *
+ * @param {Router.IRouterContext} ctx
+ * @param {() => Promise<any>} next
+ */
+export async function authorizeStrava(ctx: Router.IRouterContext, next: () => Promise<any>) {
+  const data = {
+    form: {
+      client_id: BB_STRAVA_CLIENT_ID,
+      client_secret: BB_STRAVA_CLIENT_SECRET,
+      code: ctx.query.code
+    }
+  };
+
+  try {
+    const response = await request.post('https://www.strava.com/oauth/token', data);
+    const parsed: StravaOAuthResponse = JSON.parse(response);
+
+    console.log(`Received OAuth response from Strava. OK: ${!!parsed.access_token}`);
+
+    if (parsed && parsed.access_token) {
+      assignCookiesAndStateStrava(ctx, parsed);
+    }
+  } catch (error) {
+    console.warn(`Strava OAuth failed`, error);
   }
 
   return ctx.redirect('/');

@@ -8,8 +8,7 @@ import * as session from 'koa-session';
 import * as views from 'koa-views';
 
 import { Slack } from './slack';
-import { authorizeSlack } from './oauth';
-import { getInstallations } from './commands/debug';
+import { authorizeSlack, authorizeStrava } from './oauth';
 import { BB_SESSION_KEY } from './config';
 import { renderHome, renderMore, renderInstall } from './views/index';
 import { signOut, getIsSignedIn } from './utils/auth';
@@ -27,7 +26,8 @@ app.use(views(__dirname + '/../views', {
       slackSignin: './partial_slack_signin',
       slackAdd: './partial_slack_add',
       stravaPowered: './partial_strava_powered',
-      footer: './partial_footer'
+      footer: './partial_footer',
+      stravaAdd: './partial_strava_add'
     }
   }
 }));
@@ -64,6 +64,8 @@ router.get('/signout', (ctx) => signOut(ctx));
 router.get('/debug/checknow', (ctx) => slack.handleCheckNowRequest(ctx));
 
 router.get('/oauth/slack', authorizeSlack);
+
+router.get('/oauth/strava', authorizeStrava);
 
 router.post('/webhook', slack.handleSlackIncoming);
 

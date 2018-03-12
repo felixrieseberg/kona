@@ -30,5 +30,11 @@ export const BB_SLACK_CLIENT_ID = process.env.BB_SLACK_CLIENT_ID;
 // Slack's OAuth Secret
 export const BB_SLACK_CLIENT_SECRET = process.env.BB_SLACK_CLIENT_SECRET;
 
+// Strava's OAuth Client Id
+export const BB_STRAVA_CLIENT_ID = process.env.BB_STRAVA_CLIENT_ID;
+
+// Strava's OAuth Secret
+export const BB_STRAVA_CLIENT_SECRET = process.env.BB_STRAVA_CLIENT_SECRET;
+
 // Secret key for session storage
 export const BB_SESSION_KEY = process.env.BB_SESSION_KEY || '';

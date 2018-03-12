@@ -14,6 +14,12 @@ jest.mock('strava-v3', () => ({
       const club = require('./mocks/club.json');
       callback(undefined, club);
     },
+  },
+  athlete: {
+    listClubs: (options, callback) => {
+      const club = require('./mocks/club.json');
+      callback(undefined, [ club ]);
+    },
   }
 }));
 jest.mock('../src/config', () => ({
