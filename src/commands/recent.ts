@@ -4,11 +4,12 @@ import * as moment from 'moment';
 import { Installation } from '../interfaces';
 import { database } from '../database';
 import { isRecent, isRecentSince } from '../utils/parse-text';
-import { postDidNotWork, postNoClubs } from './help';
+import { postDidNotWork } from './help';
 import { getActivitiesSince, getActivities } from '../strava';
 import { formatActivities } from '../utils/format-activities';
 
 const strings = {
+  noClubs: () => `We're not watching any clubs yet!`,
   failedGeneric: () => 'We failed to get information about your installation',
   failedDb: (op: string) => `We tried to ${op} the club, but encountered an internal database error :sadness:`
 };
@@ -62,7 +63,8 @@ export async function handleRecentRequest(ctx: Router.IRouterContext, text: stri
 
     if (!installation) throw new Error(`No installation found`);
     if (!installation.strava.clubs || installation.strava.clubs.length < 1) {
-      return postNoClubs(ctx);
+      ctx.body = { text: strings.noClubs(), response_type: 'ephemeral' };
+      return;
     }
 
     const isRecentCheck = isRecent(text);
