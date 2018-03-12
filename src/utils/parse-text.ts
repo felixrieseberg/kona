@@ -78,3 +78,7 @@ export function findDateTime(input: string): moment.Moment | null {
     ? output
     : null;
 }
+
+export function isHelpRequest(text: string) {
+  return !!(text.trim() === '' || /(help)|(🚑)|(👩‍🚒)|(🚨)|(👨‍🚒)|(🚒)|(\?)$/i.test(text.trim()));
+}

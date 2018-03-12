@@ -180,7 +180,9 @@ export interface StringMap<T> {
   [x: string]: T;
 }
 
-export interface SlackOAuthResponse {
+export type SlackOAuthResponse = SlackOAuthInstallationResponse | SlackOAuthSigninResponse;
+
+export interface SlackOAuthInstallationResponse {
   ok: boolean;
   access_token: string;
   scope: string;
@@ -192,6 +194,29 @@ export interface SlackOAuthResponse {
     channel_id: string;
     configuration_url: string;
     url: string;
+  };
+}
+
+export interface SlackOAuthSigninResponse {
+  ok: boolean;
+  access_token: string;
+  scope: string;
+  user: {
+    name: string;
+    id: string;
+  };
+  team: {
+    id: string;
+    name: string;
+    domain: string;
+    image_34: string;
+    image_44: string;
+    image_68: string;
+    image_88: string;
+    image_102: string;
+    image_132: string;
+    image_230: string;
+    image_original: string;
   };
 }
 

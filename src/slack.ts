@@ -5,16 +5,18 @@ import * as moment from 'moment';
 import { BB_CHECK_INTERVAL, BB_DISABLE_CHECK } from './config';
 import { SlashCmdBody, SlackMessageAttachment, Installation } from './interfaces';
 import { getActivitiesSince } from './strava';
-import { isMembers } from './utils/parse-text';
+import { isMembers, isHelpRequest } from './utils/parse-text';
 import { formatActivities } from './utils/format-activities';
 import { database } from './database';
 
-import { isHelpRequest, postHelp, postDidNotWork } from './commands/help';
-import { handleClubRequest } from './commands/club';
-import { handleDebugRequest } from './commands/debug';
-import { handleMembersRequest } from './commands/members';
-import { handleRecentRequest } from './commands/recent';
-
+import {
+  postHelp,
+  postDidNotWork,
+  handleClubRequest,
+  handleDebugRequest,
+  handleMembersRequest,
+  handleRecentRequest,
+} from './commands/index';
 
 export class Slack {
   // Format: [timestamp, count, timestamp, count, ...]

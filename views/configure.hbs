@@ -1,0 +1,15 @@
+{{#> layoutBase}}
+  <h2>Strava Clubs</h2>
+  {{#if clubs}}
+    <p>Kona is currently watching the following Strava clubs for you. To add a club, please type <code>/kona help</code> into the message input in Slack.</p>
+    {{#each clubs as |club|}}
+      <div class="strava-club">
+        <a href="https://strava.com/clubs/{{club.id}}" target="_blank">
+          <h4>{{club.name}}{{#if club.city}}, {{club.city}}{{/if}}</h4>
+        </a>
+      </div>
+    {{/each}}
+  {{else}}
+    <p>Almost done! Now, tell Kona which Strava Clubs to watch. To add a club, please type <code>/kona help</code> into the message input in Slack.</p>
+  {{/if}}
+{{/layoutBase}}

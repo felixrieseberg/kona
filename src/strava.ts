@@ -21,6 +21,28 @@ export const SPORTS_EMOJI: StringMap<string> = {
 };
 
 /**
+ * Get information about a bunch of clubs
+ *
+ * @param {Array<number>} clubIds
+ * @returns {Promise<Array<StravaClub>>}
+ */
+export async function getClubs(clubIds: Array<number>): Promise<Array<StravaClub>> {
+  const clubs = [];
+
+  for (const id of clubIds) {
+    const options = { access_token: BB_STRAVA_TOKEN, per_page: 100, id };
+
+    try {
+      clubs.push(await getClub(options));
+    } catch (error) {
+      console.error(`Failed to fetch club`, error);
+    }
+  }
+
+  return clubs;
+}
+
+/**
  * Gets members and club information
  *
  * @returns {Promise<Array<StravaClubWithMembers>>}

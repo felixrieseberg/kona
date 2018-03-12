@@ -49,10 +49,6 @@ const clubHelp = (multiline.stripIndent(() => {
 }) as string).replace(/\/kona/g, BB_SLACK_SLASH_COMMAND);
 // tslint:enable:max-line-length
 
-export function isHelpRequest(text: string) {
-  return !!(text.trim() === '' || /(help)|(🚑)|(👩‍🚒)|(🚨)|(👨‍🚒)|(🚒)|(\?)$/i.test(text.trim()));
-}
-
 export async function postHelp(ctx: Koa.Context) {
   ctx.body = {
     response_type: 'ephemeral',

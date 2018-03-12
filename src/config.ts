@@ -24,7 +24,11 @@ export const BB_DISABLE_CHECK = !!process.env.BB_DISABLE_CHECK;
 // Example: '/blob'
 export const BB_SLACK_SLASH_COMMAND = process.env.BB_SLACK_SLASH_COMMAND || '/kona';
 
+// Slack's OAuth Client Id
 export const BB_SLACK_CLIENT_ID = process.env.BB_SLACK_CLIENT_ID;
 
+// Slack's OAuth Secret
 export const BB_SLACK_CLIENT_SECRET = process.env.BB_SLACK_CLIENT_SECRET;
 
+// Secret key for session storage
+export const BB_SESSION_KEY = process.env.BB_SESSION_KEY || '';
