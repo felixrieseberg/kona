@@ -61,7 +61,7 @@ router.get('/more', (ctx) => renderMore(ctx));
 
 router.get('/signout', (ctx) => signOut(ctx));
 
-router.get('/debug/installations', getInstallations);
+router.get('/debug/checknow', (ctx) => slack.handleCheckNowRequest(ctx));
 
 router.get('/oauth/slack', authorizeSlack);
 

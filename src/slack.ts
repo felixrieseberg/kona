@@ -73,10 +73,8 @@ export class Slack {
 
   /**
    * Check now!
-   *
-   * @param {Router.IRouterContext} ctx
    */
-  private async handleCheckNowRequest(ctx: Router.IRouterContext) {
+  public async handleCheckNowRequest(ctx: Router.IRouterContext) {
     this.periodicCheck();
 
     ctx.body = {
@@ -135,7 +133,7 @@ export class Slack {
     // We now have the activities for the last 7 days. Which ones did we already post?
     for (const activity of activities) {
       const alreadyPosted = await database.hasActivity({ id: activity.id });
-      console.log(`Acitivty ${activity.id} known: ${!!alreadyPosted}`);
+      console.log(`Activity ${activity.id} known: ${!!alreadyPosted}`);
 
       if (!alreadyPosted) {
         activitiesToPost.push(activity);
