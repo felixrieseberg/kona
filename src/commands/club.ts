@@ -44,7 +44,7 @@ async function removeClub(installation: Installation, input: string): Promise<st
   const clubId = safeParseClub(removeRegex, input);
 
   if (clubId) {
-    console.log(`Attempting to remove club ${clubId} for ${installation.slack.teamId}`);
+    logger.log(`Attempting to remove club ${clubId} for ${installation.slack.teamId}`);
 
     if (!installation.strava.clubs.find(({ id }) => id === clubId)) {
       return strings.alreadyRemoved(clubId);
@@ -56,7 +56,7 @@ async function removeClub(installation: Installation, input: string): Promise<st
     try {
       await database.updateInstallation(installation);
     } catch (error) {
-      console.log(`Tried to remove club, but failed`, error);
+      logger.log(`Tried to remove club, but failed`, error);
       return strings.failedDb(`remove`);
     }
 
@@ -104,7 +104,7 @@ export async function handleClubRequest(ctx: Router.IRouterContext, input: strin
       text = await listClubs(installation, input);
     }
   } catch (error) {
-    console.log(`Tried to get installation, but failed`, error);
+    logger.log(`Tried to get installation, but failed`, error);
     text = strings.failedGeneric();
   }
 

@@ -1,5 +1,5 @@
 import * as Koa from 'koa';
-import * as logger from 'koa-logger';
+import * as klogger from 'koa-logger';
 import * as Router from 'koa-router';
 import * as bodyparser from 'koa-bodyparser';
 import * as serve from 'koa-static';
@@ -12,6 +12,7 @@ import { authorizeSlack, authorizeStrava } from './oauth';
 import { BB_SESSION_KEY, BB_ROOT_URL } from './config';
 import { renderMore, renderRoot } from './views/index';
 import { signOut } from './utils/auth';
+import { logger } from './logger';
 
 const app = new Koa();
 
@@ -38,7 +39,7 @@ app.keys = [ BB_SESSION_KEY ];
 app.use(session({ key: 'kona:sess', maxAge: 86400000 }, app));
 app.use(bodyparser());
 app.use(koaJson());
-app.use(logger());
+app.use(klogger());
 app.use(async (ctx, next) => {
   ctx.state.rootUrl = BB_ROOT_URL;
   ctx.state.rootUrlEncoded = encodeURIComponent(BB_ROOT_URL);
@@ -51,7 +52,6 @@ router.get('/more', (ctx) => renderMore(ctx));
 
 // URLs that take you back home
 router.get('/signout', (ctx) => signOut(ctx));
-router.get('/debug/checknow', (ctx) => slack.handleCheckNowRequest(ctx));
 router.get('/oauth/slack', authorizeSlack);
 router.get('/oauth/strava', authorizeStrava);
 
@@ -62,5 +62,5 @@ app.use(router.routes() as any);
 app.use(serve('static', { maxage: 1000 * 60 * 60 * 30 }));
 
 app.listen(process.env.PORT || 8082, () => {
-  console.log(`Blobbot is now live on ${process.env.PORT || 8082}`);
+  logger.log(`:desert_island: Kona is now live on ${process.env.PORT || 8082}`);
 });

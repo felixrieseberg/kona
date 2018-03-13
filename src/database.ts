@@ -1,6 +1,7 @@
 import * as mongoDB from 'mongodb';
 import { BB_MONGO_STRING, BB_MONGO_DB_NAME } from './config';
 import { Installation } from './interfaces';
+import { logger } from './logger';
 
 export interface DatabaseActivity {
   id: number;
@@ -10,6 +11,8 @@ enum Collections {
   Activities = 'activities',
   Installations = 'installations'
 }
+
+const lp = `:floppy_disk: *Database*:`;
 
 export class MongoDB {
   private db: mongoDB.Db;
@@ -36,13 +39,13 @@ export class MongoDB {
    * @returns {Promise<boolean>}
    */
   public hasActivity(activity: DatabaseActivity): Promise<boolean> {
-    console.log(`Trying to find activity ${activity.id} in ${Collections.Activities}`);
+    logger.log(`${lp} Trying to find activity ${activity.id} in ${Collections.Activities}`);
 
     return this.db
       .collection(Collections.Activities)
       .findOne(activity)
       .then((response) => {
-        console.log(`Find activity operation result:`, response);
+        logger.log(`${lp} Find activity operation result: ${!!response ? 'found' : 'not found'}`);
         return response;
       });
   }
@@ -54,15 +57,15 @@ export class MongoDB {
    * @returns {Promise<void>}
    */
   public addActivities(activities: Array<DatabaseActivity>) {
-    console.log(`Adding ${activities.length} activities to ${Collections.Activities}`);
+    logger.log(`${lp} Adding ${activities.length} activities to ${Collections.Activities}`);
 
     return this.db
       .collection(Collections.Activities)
       .insertMany(activities)
       .then((response) => {
-        if (response && response.ops && response.ops.length > 0) {
-          console.log(`Insert activity operation result:`, response.ops);
-          return response.ops[0];
+        if (response && response.insertedCount !== undefined) {
+          logger.log(`${lp} Wrote ${response.insertedCount} to database`);
+          return response;
         }
       });
   }
@@ -74,14 +77,14 @@ export class MongoDB {
    * @returns {Promise<void>}
    */
   public addInstallation(installation: Installation) {
-    console.log(`Adding an installation to ${Collections.Installations}`);
+    logger.log(`${lp} Adding an installation to ${Collections.Installations}`);
 
     return this.db
       .collection(Collections.Installations)
       .updateOne({ 'slack.teamId': installation.slack.teamId }, installation, { upsert: true })
       .then((response) => {
         if (response && response.result) {
-          console.log(`Insert activity operation result:`, response.result.ok);
+          logger.log(`${lp} Insert activity operation result:`, response.result.ok);
         }
       });
   }
@@ -93,7 +96,7 @@ export class MongoDB {
    * @memberof MongoDB
    */
   public getInstallations(): Promise<Array<Installation>> {
-    console.log(`Getting installations`);
+    logger.log(`${lp} Getting installations`);
 
     return this.db
       .collection(Collections.Installations)
@@ -108,7 +111,7 @@ export class MongoDB {
    * @memberof MongoDB
    */
   public getInstallationForTeam(teamId: string): Promise<Installation | null> {
-    console.log(`Getting installation for team ${teamId}`);
+    logger.log(`${lp} Getting installation for team ${teamId}`);
 
     return this.db
       .collection(Collections.Installations)
@@ -117,11 +120,11 @@ export class MongoDB {
 
   public async updateInstallation(installation: Installation): Promise<boolean> {
     if (!installation._id) {
-      console.warn(`Tried to update installation, but data was missing _id field`);
+      console.warn(`${lp} Tried to update installation, but data was missing _id field`);
       return false;
     }
 
-    console.log(`Updating installation`, { mongoId: installation._id, team: installation.slack.teamId });
+    logger.log(`${lp} Updating installation`, { mongoId: installation._id, team: installation.slack.teamId });
 
     return this.db
       .collection(Collections.Installations)
@@ -136,21 +139,20 @@ export class MongoDB {
    */
   private async connect() {
     if (!BB_MONGO_DB_NAME || !BB_MONGO_STRING) {
-      console.warn(`MongoDB environment variables missing!`);
-      console.warn(`Will not attempt to setup database`);
+      console.warn(`${lp} MongoDB environment variables missing!`);
+      console.warn(`${lp} Will not attempt to setup database`);
       return;
     }
 
     try {
-      console.log(`Connecting to MongoDB database`);
+      logger.log(`${lp} Connecting to MongoDB database...`);
 
       this.client = await mongoDB.MongoClient.connect(BB_MONGO_STRING);
       this.db = this.client.db(BB_MONGO_DB_NAME);
 
-      console.log(`MongoDB connection established`);
-    } catch (e) {
-      console.log('Failed to connect to MongoDB');
-      console.log(e);
+      logger.log(`${lp} MongoDB connection established.`);
+    } catch (error) {
+      logger.log(`${lp} Failed to connect to MongoDB.`, error);
     }
   }
 }

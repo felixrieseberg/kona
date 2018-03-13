@@ -3,11 +3,14 @@ import { promisify } from 'util';
 import * as moment from 'moment';
 
 import { StravaActivity, StringMap, StravaClubWithMembers, StravaClub, StravaMember, Athelete, InstallationClub } from './interfaces';
+import { logger } from './logger';
 
 const listMembers = promisify(strava.clubs.listMembers);
 const listActivities = promisify(strava.clubs.listActivities);
 const getClub = promisify(strava.clubs.get);
 const getAthleteClubs = promisify(strava.athlete.listClubs);
+
+const lp = `:bike: *Strava*:`;
 
 export const STRAVA_TIME_FORMAT = 'YYYY-MM-DDTHH:mm:SSZ';
 
@@ -29,7 +32,7 @@ export const SPORTS_EMOJI: StringMap<string> = {
 export async function getClubsForAthelete(athelete: Athelete): Promise<Array<StravaClub>> {
   const clubs = [];
 
-  console.log(`Fetching clubs for athlete ${athelete.id} (${athelete.firstName})`);
+  logger.log(`${lp} Fetching clubs for athlete ${athelete.id} (${athelete.firstName})`);
 
   try {
     const options = { access_token: athelete.accessToken, per_page: 100 };
@@ -40,7 +43,7 @@ export async function getClubsForAthelete(athelete: Athelete): Promise<Array<Str
     console.error(`Failed to fetch clubs for athlete`, error);
   }
 
-  console.log(`Found ${clubs.length} clubs for athlete ${athelete.id} (${athelete.firstName})`);
+  logger.log(`${lp} Found ${clubs.length} clubs for athlete ${athelete.id} (${athelete.firstName})`);
   return clubs;
 }
 
@@ -53,7 +56,7 @@ export async function getClubsForAthelete(athelete: Athelete): Promise<Array<Str
 export async function getClubs(installationClubs: Array<InstallationClub>): Promise<Array<StravaClub>> {
   const clubs = [];
 
-  console.log(`Fetching details for ${installationClubs.length} clubs`);
+  logger.log(`${lp} Fetching details for ${installationClubs.length} clubs`);
 
   for (const { id, token } of installationClubs) {
     const options = { access_token: token, per_page: 100, id };
@@ -87,7 +90,7 @@ export async function getMembers(clubs: Array<InstallationClub>): Promise<Array<
         clubsWithMembers.push({ club, members });
       }
     } catch (error) {
-      console.error(`Failed to fetch members`, error);
+      logger.error(`Failed to fetch members`, error);
     }
   }
 
@@ -120,6 +123,8 @@ export async function getActivitiesSince(since: moment.Moment, clubs: Array<Inst
 export async function getActivities(clubs: Array<InstallationClub>, count: number = 10): Promise<Array<StravaActivity>> {
   const allActivities: Array<StravaActivity> = [];
 
+  logger.log(`${lp} Getting up to ${count} activities for ${clubs.length} clubs`);
+
   for (const { id, token } of clubs) {
     const options = { access_token: token, per_page: count, id };
 
@@ -127,16 +132,16 @@ export async function getActivities(clubs: Array<InstallationClub>, count: numbe
       const activities: Array<StravaActivity> = await listActivities(options);
 
       if (!activities || activities.length === 0) {
-        console.log(`${id}: No activities found.`);
+        logger.log(`${lp} Club ${id}: No activities found.`);
         continue;
       }
 
-      console.log(`${id}: ${activities.length} activities found`);
+      logger.log(`${lp} Club ${id}: ${activities.length} activities found`);
       allActivities.push(...activities);
     } catch (error) {
-      console.error(`${id}: Failed to fetch activities`, error);
+      logger.error(`${id}: Failed to fetch activities`, error);
     }
   }
 
-  return allActivities.slice(0, count);
+  return allActivities;
 }

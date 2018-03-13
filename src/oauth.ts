@@ -5,6 +5,9 @@ import { BB_SLACK_CLIENT_ID, BB_SLACK_CLIENT_SECRET, BB_STRAVA_CLIENT_ID, BB_STR
 import { SlackOAuthInstallationResponse, SlackOAuthResponse, StravaOAuthResponse, Installation } from './interfaces';
 import { database } from './database';
 import { assignCookiesAndStateSlack, assignCookiesAndStateStrava } from './utils/auth';
+import { logger } from './logger';
+
+const lp = `:lock: OAuth:`;
 
 /**
  * Clean data from Slack up and return an object that we want to work with
@@ -52,7 +55,7 @@ export async function authorizeSlack(ctx: Router.IRouterContext, next: () => Pro
     const response = await request.post('https://slack.com/api/oauth.access', data);
     const parsed: SlackOAuthResponse = JSON.parse(response);
 
-    console.log(`Received OAuth response from Slack. OK: ${!!parsed.ok}`);
+    logger.log(`${lp} Received OAuth response from Slack. OK: ${!!parsed.ok}`);
 
     if (parsed && parsed.ok) {
       assignCookiesAndStateSlack(ctx, parsed);
@@ -63,12 +66,12 @@ export async function authorizeSlack(ctx: Router.IRouterContext, next: () => Pro
         try {
           await database.addInstallation(getOptionsFromSlackData(parsed as SlackOAuthInstallationResponse));
         } catch (error) {
-          console.log(`Tried to add installation in response to Slack OAuth, but failed`, error);
+          logger.log(`${lp} Tried to add installation in response to Slack OAuth, but failed`, error);
         }
       }
     }
   } catch (error) {
-    console.warn(`Slack OAuth failed`, error);
+    console.warn(`${lp} Slack OAuth failed`, error);
   }
 
   return ctx.redirect('/');
@@ -94,13 +97,14 @@ export async function authorizeStrava(ctx: Router.IRouterContext, next: () => Pr
     const response = await request.post('https://www.strava.com/oauth/token', data);
     const parsed: StravaOAuthResponse = JSON.parse(response);
 
-    console.log(`Received OAuth response from Strava. OK: ${!!parsed.access_token}`);
+    logger.log(`${lp} Received OAuth response from Strava. OK: ${!!parsed.access_token}`);
 
     if (parsed && parsed.access_token) {
+      logger.log(`${lp} Data seems valid.`, parsed.athlete);
       assignCookiesAndStateStrava(ctx, parsed);
     }
   } catch (error) {
-    console.warn(`Strava OAuth failed`, error);
+    console.warn(`${lp} Strava OAuth failed`, error);
   }
 
   return ctx.redirect('/');

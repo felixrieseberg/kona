@@ -80,7 +80,7 @@ export async function handleRecentRequest(ctx: Router.IRouterContext, text: stri
     // Welp, let's post help
     return postDidNotWork(ctx);
   } catch (error) {
-    console.log(`Tried to get installation, but failed`, error);
+    logger.log(`Tried to get installation, but failed`, error);
     ctx.body = { text: strings.failedGeneric(), response_type: 'ephemeral' };
   }
 }

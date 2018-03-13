@@ -8,15 +8,17 @@ import { getActivitiesSince } from './strava';
 import { isMembers, isHelpRequest } from './utils/parse-text';
 import { formatActivities } from './utils/format-activities';
 import { database } from './database';
-
 import {
   postHelp,
   postDidNotWork,
   handleDebugRequest,
   handleMembersRequest,
+  handleClubRequest,
   handleRecentRequest,
 } from './commands/index';
-import { handleClubRequest } from './commands/club';
+import { logger } from './logger';
+
+const lp = `:slack: *Slack*: `;
 
 export class Slack {
   // Format: [timestamp, count, timestamp, count, ...]
@@ -31,7 +33,7 @@ export class Slack {
       setTimeout(this.periodicCheck, 2500);
       setInterval(this.periodicCheck, 1000 * 60 * BB_CHECK_INTERVAL);
     } else {
-      console.log(`Regular check is disabled`);
+      logger.log(`${lp} Regular check is disabled, not checking`);
     }
   }
 
@@ -75,6 +77,7 @@ export class Slack {
    * Check now!
    */
   public async handleCheckNowRequest(ctx: Router.IRouterContext) {
+    logger.log(`${lp} Received check-now request, checking`);
     this.periodicCheck();
 
     ctx.body = {
@@ -91,6 +94,8 @@ export class Slack {
    * @param {number} count
    */
   private addToLastCheckedLog(now: moment.Moment, count: number) {
+    logger.silly(`${lp} Updating last checked log (${now.toLocaleString()})`);
+
     if (this.checkLog.length > 100) {
       this.checkLog = this.checkLog.slice(2);
     }
@@ -101,7 +106,7 @@ export class Slack {
   private async periodicCheck() {
     // Don't do anythign without a database
     if (!database.isConnected()) {
-      console.warn(`Meant to perform periodic check, but database not connected`);
+      console.warn(`${lp} Meant to perform periodic check, but database not connected`);
       return;
     }
 
@@ -112,7 +117,7 @@ export class Slack {
         await this.periodicCheckForInstallation(installation);
       }
     } catch (error) {
-      console.log(`Periodic check error`, error);
+      logger.log(`${lp} Periodic check error`, error);
     }
   }
 
@@ -128,12 +133,13 @@ export class Slack {
     const activities = await getActivitiesSince(nowMinus7, strava.clubs);
     const activitiesToPost = [];
 
-    console.log(`Found ${activities.length} since ${nowMinus7.valueOf()}`);
+    logger.log(`${lp} Found ${activities.length} since ${nowMinus7.valueOf()}`);
 
     // We now have the activities for the last 7 days. Which ones did we already post?
     for (const activity of activities) {
       const alreadyPosted = await database.hasActivity({ id: activity.id });
-      console.log(`Activity ${activity.id} known: ${!!alreadyPosted}`);
+      const details = `${activity.athlete.firstname}, ${activity.type}, ${activity.location_city})`;
+      logger.log(`${lp} Activity ${activity.id} (details) known: ${!!alreadyPosted}`);
 
       if (!alreadyPosted) {
         activitiesToPost.push(activity);
@@ -158,14 +164,16 @@ export class Slack {
     const { slack } = installation;
 
     if (!slack.incomingWebhook.url) {
-      console.warn(`Team ${slack.teamId}: No Slack webhook configured, not posting`);
+      logger.warn(`${lp} Team ${slack.teamId}: No Slack webhook configured, not posting`);
       return;
     }
 
     try {
+      logger.silly(`${lp} Now posting to Slack`);
+
       await request.post(slack.incomingWebhook.url, { json });
     } catch (error) {
-      console.log(error);
+      logger.log(error);
     }
   }
 }
