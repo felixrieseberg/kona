@@ -2,11 +2,16 @@ import * as Router from 'koa-router';
 import * as request from 'request-promise-native';
 
 import { BB_SLACK_CLIENT_ID, BB_SLACK_CLIENT_SECRET, BB_STRAVA_CLIENT_ID, BB_STRAVA_CLIENT_SECRET } from './config';
-import { SlackOAuthInstallationResponse, SlackOAuthResponse, StravaOAuthResponse } from './interfaces';
+import { SlackOAuthInstallationResponse, SlackOAuthResponse, StravaOAuthResponse, Installation } from './interfaces';
 import { database } from './database';
 import { assignCookiesAndStateSlack, assignCookiesAndStateStrava } from './utils/auth';
 
-export function getOptionsFromSlackData(data: SlackOAuthInstallationResponse) {
+/**
+ * Clean data from Slack up and return an object that we want to work with
+ *
+ * @param {SlackOAuthInstallationResponse} data
+ */
+export function getOptionsFromSlackData(data: SlackOAuthInstallationResponse): Installation {
   return {
     slack: {
       accessToken: data.access_token,

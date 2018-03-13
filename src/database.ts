@@ -78,11 +78,10 @@ export class MongoDB {
 
     return this.db
       .collection(Collections.Installations)
-      .insertOne(installation)
+      .updateOne({ 'slack.teamId': installation.slack.teamId }, installation, { upsert: true })
       .then((response) => {
-        if (response && response.ops && response.ops.length > 0) {
-          console.log(`Insert activity operation result:`, response.ops);
-          return response.ops[0];
+        if (response && response.result) {
+          console.log(`Insert activity operation result:`, response.result.ok);
         }
       });
   }
