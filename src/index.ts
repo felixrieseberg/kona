@@ -10,9 +10,8 @@ import * as views from 'koa-views';
 import { Slack } from './slack';
 import { authorizeSlack, authorizeStrava } from './oauth';
 import { BB_SESSION_KEY, BB_ROOT_URL } from './config';
-import { renderConfigure, renderMore, renderRoot } from './views/index';
-import { signOut, getIsSignedIn } from './utils/auth';
-import { database } from './database';
+import { renderMore, renderRoot } from './views/index';
+import { signOut } from './utils/auth';
 
 const app = new Koa();
 
