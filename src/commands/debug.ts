@@ -18,19 +18,19 @@ export async function handleDebugRequest(ctx: Router.IRouterContext, text: strin
   }
 
   if (text.includes(`enable log module`)) {
-    logger.handleEnableModuleCommand(ctx, text);
+    return logger.handleEnableModuleCommand(ctx, text);
   }
 
   if (text.includes(`disable log module`)) {
-    logger.handleDisableModuleCommand(ctx, text);
+    return logger.handleDisableModuleCommand(ctx, text);
   }
 
   if (text.includes(`enable log`)) {
-    logger.handleEnableCommand(ctx);
+    return logger.handleEnableCommand(ctx);
   }
 
   if (text.includes(`disable log`)) {
-    logger.handleDisableCommand(ctx);
+    return logger.handleDisableCommand(ctx);
   }
 
   return postDebugInfo(ctx, checkLog);
