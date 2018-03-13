@@ -9,11 +9,10 @@ import * as views from 'koa-views';
 
 import { Slack } from './slack';
 import { authorizeSlack, authorizeStrava } from './oauth';
-import { BB_SESSION_KEY } from './config';
-import { renderHome, renderMore, renderInstall } from './views/index';
+import { BB_SESSION_KEY, BB_ROOT_URL } from './config';
+import { renderConfigure, renderMore, renderRoot } from './views/index';
 import { signOut, getIsSignedIn } from './utils/auth';
 import { database } from './database';
-import { renderConfigure } from './views/configure';
 
 const app = new Koa();
 
@@ -41,36 +40,27 @@ app.use(session({ key: 'kona:sess', maxAge: 86400000 }, app));
 app.use(bodyparser());
 app.use(koaJson());
 app.use(logger());
-
-router.get('/', async (ctx) => {
-  const { isSignedIn, teamId } = getIsSignedIn(ctx);
-
-  if (isSignedIn) {
-    const installation = await database.getInstallationForTeam(teamId);
-    if (installation) {
-      return renderConfigure(ctx, installation);
-    }
-
-    return renderInstall(ctx);
-  }
-
-  return renderHome(ctx);
+app.use(async (ctx, next) => {
+  ctx.state.rootUrl = BB_ROOT_URL;
+  ctx.state.rootUrlEncoded = encodeURIComponent(BB_ROOT_URL);
+  await next();
 });
 
+// Pages you can _be_ on
+router.get('/', (ctx) => renderRoot(ctx));
 router.get('/more', (ctx) => renderMore(ctx));
 
+// URLs that take you back home
 router.get('/signout', (ctx) => signOut(ctx));
-
 router.get('/debug/checknow', (ctx) => slack.handleCheckNowRequest(ctx));
-
 router.get('/oauth/slack', authorizeSlack);
-
 router.get('/oauth/strava', authorizeStrava);
 
+// Service
 router.post('/webhook', slack.handleSlackIncoming);
 
 app.use(router.routes() as any);
-app.use(serve('static', { maxage: 1000 * 60 * 60 }));
+app.use(serve('static', { maxage: 1000 * 60 * 60 * 30 }));
 
 app.listen(process.env.PORT || 8082, () => {
   console.log(`Blobbot is now live on ${process.env.PORT || 8082}`);

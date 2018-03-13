@@ -16,11 +16,6 @@ body {
   text-shadow: 2px 2px 2px rgb(46, 46, 46, .5);
 }
 
-body.install > .page,
-body.configure > .page {
-  background: rgba(0, 0, 0, .7);
-}
-
 a, a:visited, a:active {
   color: #fff;
   text-decoration: none;
@@ -28,6 +23,18 @@ a, a:visited, a:active {
 
 a:hover {
   text-decoration: underline;
+}
+
+/** Specific stuff **/
+
+body.install > .page,
+body.configure > .page,
+body.more > .page {
+  background: rgba(0, 0, 0, .77);
+}
+
+.content {
+  max-width: 1000px;
 }
 
 .page {

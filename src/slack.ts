@@ -16,6 +16,7 @@ import {
   handleMembersRequest,
   handleRecentRequest,
 } from './commands/index';
+import { handleClubRequest } from './commands/club';
 
 export class Slack {
   // Format: [timestamp, count, timestamp, count, ...]
@@ -45,6 +46,10 @@ export class Slack {
 
     if (isHelpRequest(text)) {
       return postHelp(ctx);
+    }
+
+    if (text.startsWith('clubs')) {
+      return handleClubRequest(ctx, text);
     }
 
     if (text.includes('debug')) {

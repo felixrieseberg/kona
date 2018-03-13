@@ -38,3 +38,6 @@ export const BB_STRAVA_CLIENT_SECRET = process.env.BB_STRAVA_CLIENT_SECRET;
 
 // Secret key for session storage
 export const BB_SESSION_KEY = process.env.BB_SESSION_KEY || '';
+
+// URL
+export const BB_ROOT_URL = process.env.BB_ROOT_URL || 'https://www.kona.fit';

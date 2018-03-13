@@ -1,5 +1,6 @@
 <div id="more-and-credits">
-  <a href="/more">More Information</a>
+  {{#unless active.root}}<a href="/">Home</a>{{/unless}}
+  {{#unless active.more}}<a href="/more">More Information</a>{{/unless}}
   {{#if isSignedIn}}
     <a href="/signout">Sign Out</a>
   {{/if}}
