@@ -75,7 +75,7 @@ export class Logger {
     }
 
     // Is a filter active?
-    if (this.disableLogFilter.find((v) => text.includes(v))) {
+    if (this.disableLogFilter.find((v) => (text.toLowerCase()).includes(v.toLowerCase()))) {
       return;
     }
 
