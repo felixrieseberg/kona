@@ -2,6 +2,8 @@ import * as Router from 'koa-router';
 import { SlackOAuthResponse, SlackOAuthInstallationResponse, StravaOAuthResponse } from '../interfaces';
 import { logger } from '../logger';
 
+const lp = `:lock: ${lp}`;
+
 export interface IsSignedIn {
   isSignedIn: boolean;
   userId: string;
@@ -25,7 +27,7 @@ export function getIsSignedIn(ctx: Router.IRouterContext): IsSignedIn {
   const userId = ctx.cookies.get('s.userId') || ctx.state.slackUserId;
   const isSignedIn = !!(teamId && userId);
 
-  logger.log(`*Auth Utilities*: Checking if user is signed into Slack`, { teamId, userId, isSignedIn });
+  logger.log(`${lp} Checking if user is signed into Slack (${userId ? userId : 'No'})`);
 
   ctx.state.slackTeamId = teamId;
   ctx.state.slackUserId = userId;
@@ -74,7 +76,7 @@ export function getStravaStatus(ctx: Router.IRouterContext): StravaState | null 
   const accessToken = ctx.state.stravaAccessToken || ctx.cookies.get('st.accessToken');
   const firstName = ctx.state.stravaFirstName || ctx.cookies.get('st.firstName');
 
-  logger.log(`*Auth Utilities*: Checking if user is signed into Strava`, { id, firstName });
+  logger.log(`${lp} Checking if user is signed into Strava (${firstName ? firstName : 'No'})`);
 
   ctx.state.stravaAccessToken = accessToken;
   ctx.state.stravaAthleteId = id;

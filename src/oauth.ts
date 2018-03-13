@@ -70,10 +70,10 @@ export async function authorizeSlack(ctx: Router.IRouterContext, next: () => Pro
         }
       }
     } else {
-      console.error(`${lp} Slack returned an OAuth error`, parsed);
+      logger.error(`${lp} Slack returned an OAuth error`, parsed);
     }
   } catch (error) {
-    console.warn(`${lp} Slack OAuth failed`, error);
+    logger.warn(`${lp} Slack OAuth failed`, error);
   }
 
   return ctx.redirect('/');
