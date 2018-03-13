@@ -81,7 +81,7 @@ export class MongoDB {
 
     return this.db
       .collection(Collections.Installations)
-      .updateOne({ 'slack.teamId': installation.slack.teamId }, installation, { upsert: true })
+      .updateOne({ 'slack.teamId': installation.slack.teamId }, { $set: installation }, { upsert: true })
       .then((response) => {
         if (response && response.result) {
           logger.log(`${lp} Insert activity operation result:`, response.result.ok);
