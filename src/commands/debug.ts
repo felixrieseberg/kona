@@ -32,6 +32,8 @@ export async function handleDebugRequest(ctx: Router.IRouterContext, text: strin
   if (text.includes(`disable log`)) {
     logger.handleDisableCommand(ctx);
   }
+
+  return postDebugInfo(ctx, checkLog);
 }
 
 function postDebugInfo(ctx: Router.IRouterContext, checkLog: Array<number>) {
