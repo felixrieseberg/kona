@@ -4,8 +4,8 @@ import * as Router from 'koa-router';
 import { BB_LOGGER_WEBHOOK } from './config';
 import { SlackMessage } from './interfaces';
 
-const disableRegex = /disable log module (.*)/;
-const enableRegex = /enable log module (.*)/;
+const disableRegex = /.* disable log module (.*)/;
+const enableRegex = /.* enable log module (.*)/;
 
 const strings = {
   enabled: () => `Slack Logger enabled.`,
