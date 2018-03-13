@@ -117,16 +117,16 @@ export async function getActivitiesSince(since: moment.Moment, clubs: Array<Inst
  * Return activities
  *
  * @export
- * @param {number} [count=10]
+ * @param {number} [count=100]
  * @returns {Promise<Array<StravaActivity>>}
  */
-export async function getActivities(clubs: Array<InstallationClub>, count: number = 10): Promise<Array<StravaActivity>> {
+export async function getActivities(clubs: Array<InstallationClub>, max: number = 100): Promise<Array<StravaActivity>> {
   const allActivities: Array<StravaActivity> = [];
 
-  logger.log(`${lp} Getting up to ${count} activities for ${clubs.length} clubs`);
+  logger.log(`${lp} Getting up to ${max} activities for ${clubs.length} clubs`);
 
   for (const { id, token } of clubs) {
-    const options = { access_token: token, per_page: count, id };
+    const options = { access_token: token, per_page: max, id };
 
     try {
       const activities: Array<StravaActivity> = await listActivities(options);
@@ -143,5 +143,5 @@ export async function getActivities(clubs: Array<InstallationClub>, count: numbe
     }
   }
 
-  return allActivities;
+  return allActivities.slice(0, max);
 }
