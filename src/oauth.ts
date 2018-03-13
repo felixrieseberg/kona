@@ -69,6 +69,8 @@ export async function authorizeSlack(ctx: Router.IRouterContext, next: () => Pro
           logger.log(`${lp} Tried to add installation in response to Slack OAuth, but failed`, error);
         }
       }
+    } else {
+      console.error(`${lp} Slack returned an OAuth error`, parsed);
     }
   } catch (error) {
     console.warn(`${lp} Slack OAuth failed`, error);
