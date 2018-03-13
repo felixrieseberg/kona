@@ -4,9 +4,11 @@ import { Installation } from '../interfaces';
 import { database } from '../database';
 import { BB_SLACK_SLASH_COMMAND } from '../config';
 import { postHelp } from './help';
+import { logger } from '../logger';
 
 const addRegex = /clubs (add|watch|include) (\d{0,10})/i;
 const removeRegex = /clubs (remove|unwatch|exclude) (\d{0,10})/i;
+const lp = `:wrench: *Command (Club)*:`;
 
 const strings = {
   clubs: (installation: Installation) => installation.strava.clubs.join(', '),
@@ -44,7 +46,7 @@ async function removeClub(installation: Installation, input: string): Promise<st
   const clubId = safeParseClub(removeRegex, input);
 
   if (clubId) {
-    logger.log(`Attempting to remove club ${clubId} for ${installation.slack.teamId}`);
+    logger.log(`${lp}: Attempting to remove club ${clubId} for ${installation.slack.teamId}`);
 
     if (!installation.strava.clubs.find(({ id }) => id === clubId)) {
       return strings.alreadyRemoved(clubId);
@@ -56,7 +58,7 @@ async function removeClub(installation: Installation, input: string): Promise<st
     try {
       await database.updateInstallation(installation);
     } catch (error) {
-      logger.log(`Tried to remove club, but failed`, error);
+      logger.log(`${lp}: Tried to remove club, but failed`, error);
       return strings.failedDb(`remove`);
     }
 
@@ -104,7 +106,7 @@ export async function handleClubRequest(ctx: Router.IRouterContext, input: strin
       text = await listClubs(installation, input);
     }
   } catch (error) {
-    logger.log(`Tried to get installation, but failed`, error);
+    logger.log(`${lp}: Tried to get installation, but failed`, error);
     text = strings.failedGeneric();
   }
 

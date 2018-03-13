@@ -3,7 +3,9 @@ import * as Router from 'koa-router';
 import { StravaClubWithMembers, SlackMessageAttachment } from '../interfaces';
 import { getMembers } from '../strava';
 import { database } from '../database';
+import { logger } from '../logger';
 
+const lp = `:wrench: *Command (Members)*:`;
 const strings = {
   failedDb: () => `We tried to get members, but encountered an internal database error :sadness:`
 };
@@ -44,6 +46,8 @@ export async function handleMembersRequest(ctx: Router.IRouterContext) {
 
   try {
     const { team_id } = ctx.request.body;
+    logger.log(`${lp} Handling "members" request for team ${team_id}. Command was: \`${text}\``);
+
     const installation = await database.getInstallationForTeam(team_id);
     if (!installation) throw new Error('No installation found');
 

@@ -3,8 +3,14 @@ import * as moment from 'moment';
 import * as multiline from 'multiline';
 
 import { database } from '../database';
+import { logger } from '../logger';
+
+const lp = `:wrench: *Command (Debug)*:`;
 
 export async function handleDebugRequest(ctx: Router.IRouterContext, checkLog: Array<number>) {
+  const { team_id } = ctx.request.body;
+  logger.log(`${lp} Handling "debug" request for team ${team_id}.`);
+
   let text: string = multiline.stripIndent(() => {
     /*
       *:hammer_and_wrench: Debug Information*
@@ -37,13 +43,4 @@ export async function handleDebugRequest(ctx: Router.IRouterContext, checkLog: A
   text = text.replace('$CONNECTION', `Connected: ${database.isConnected()}`);
 
   ctx.body = { response_type: 'ephemeral', text };
-}
-
-export async function getInstallations(ctx: Router.IRouterContext, next: () => Promise<any>) {
-  if (!database.isConnected()) {
-    ctx.body = { error: 'Database is not connected' };
-    return;
-  }
-
-  ctx.body = await database.getInstallations();
 }

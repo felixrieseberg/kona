@@ -139,7 +139,7 @@ export class Slack {
     for (const activity of activities) {
       const alreadyPosted = await database.hasActivity({ id: activity.id });
       const details = `${activity.athlete.firstname}, ${activity.type}, ${activity.location_city})`;
-      logger.log(`${lp} Activity ${activity.id} (details) known: ${!!alreadyPosted}`);
+      logger.log(`${lp} Activity ${activity.id} (${details}) known: ${!!alreadyPosted}`);
 
       if (!alreadyPosted) {
         activitiesToPost.push(activity);

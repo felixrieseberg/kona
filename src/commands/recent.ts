@@ -7,7 +7,9 @@ import { isRecent, isRecentSince } from '../utils/parse-text';
 import { postDidNotWork } from './help';
 import { getActivitiesSince, getActivities } from '../strava';
 import { formatActivities } from '../utils/format-activities';
+import { logger } from '../logger';
 
+const lp = `:wrench: *Command (Recent)*:`;
 const strings = {
   noClubs: () => `We're not watching any clubs yet!`,
   failedGeneric: () => 'We failed to get information about your installation',
@@ -59,6 +61,8 @@ async function postRecentActivities(ctx: Router.IRouterContext, { strava }: Inst
 export async function handleRecentRequest(ctx: Router.IRouterContext, text: string) {
   try {
     const { team_id } = ctx.request.body;
+    logger.log(`${lp} Handling "recent" request for team ${team_id}. Command was: \`${text}\``);
+
     const installation = await database.getInstallationForTeam(team_id);
 
     if (!installation) throw new Error(`No installation found`);
@@ -80,7 +84,7 @@ export async function handleRecentRequest(ctx: Router.IRouterContext, text: stri
     // Welp, let's post help
     return postDidNotWork(ctx);
   } catch (error) {
-    logger.log(`Tried to get installation, but failed`, error);
+    logger.error(`${lp} Tried to get installation, but failed`, error);
     ctx.body = { text: strings.failedGeneric(), response_type: 'ephemeral' };
   }
 }
