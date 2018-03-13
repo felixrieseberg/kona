@@ -2,7 +2,7 @@ import * as Router from 'koa-router';
 import { SlackOAuthResponse, SlackOAuthInstallationResponse, StravaOAuthResponse } from '../interfaces';
 import { logger } from '../logger';
 
-const lp = `:lock: ${lp}`;
+const lp = `:lock: *Auth Utilities*`;
 
 export interface IsSignedIn {
   isSignedIn: boolean;
