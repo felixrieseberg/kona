@@ -251,6 +251,11 @@ export interface Athelete {
   firstName: string;
 }
 
+export interface InstallationActivity {
+  ts: number;
+  id: number;
+}
+
 export interface InstallationClub {
   token: string;
   id: number;
@@ -258,6 +263,7 @@ export interface InstallationClub {
 
 export interface Installation {
   _id?: string;
+  installationTs: number;
   slack: {
     accessToken: string;
     userId: string;
@@ -271,6 +277,7 @@ export interface Installation {
     }
   };
   strava: {
+    knownActivities: Array<InstallationActivity>;
     clubs: Array<InstallationClub>;
   };
 }

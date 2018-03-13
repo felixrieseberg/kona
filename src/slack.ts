@@ -3,8 +3,8 @@ import * as request from 'request-promise-native';
 import * as moment from 'moment';
 
 import { BB_CHECK_INTERVAL, BB_DISABLE_CHECK } from './config';
-import { SlashCmdBody, SlackMessageAttachment, Installation } from './interfaces';
-import { getActivitiesSince } from './strava';
+import { SlashCmdBody, SlackMessageAttachment, Installation, StravaActivity } from './interfaces';
+import { getActivitiesSince, getInstallationActivity } from './strava';
 import { isMembers, isHelpRequest } from './utils/parse-text';
 import { formatActivities } from './utils/format-activities';
 import { database } from './database';
@@ -122,25 +122,37 @@ export class Slack {
   }
 
   /**
+   * Log our findings about an activity
+   *
+   * @param {StravaActivity} activity
+   * @param {boolean} alreadyPosted
+   */
+  private logActivityKnown(activity: StravaActivity, alreadyPosted: boolean) {
+    const { athlete } = activity;
+    const details = `(${athlete.firstname}, ${activity.type}, \`${activity.name}\`)`;
+    const postOrNot = `, ${alreadyPosted ? 'not ' : ''}posting`;
+
+    logger.log(`${lp} Activity \`${activity.id}\` ${details} known${postOrNot}`);
+  }
+
+  /**
    * This thing runs every now and then and checks for new activities
    *
-   * @param {Installation} installation
+   * @param {Installation} install
    */
-  private async periodicCheckForInstallation(installation: Installation) {
+  private async periodicCheckForInstallation(install: Installation) {
     const now = moment();
-    const nowMinus7 = now.subtract(7, 'days');
-    const { strava } = installation;
-    const activities = await getActivitiesSince(nowMinus7, strava.clubs);
+    const nowMinus3 = now.subtract(3, 'days');
+    const { strava } = install;
+    const activities = await getActivitiesSince(nowMinus3, strava.clubs);
     const activitiesToPost = [];
 
-    logger.log(`${lp} Found ${activities.length} since ${nowMinus7.valueOf()}`);
+    logger.log(`${lp} Found ${activities.length} since ${nowMinus3.valueOf()}`);
 
     // We now have the activities for the last 7 days. Which ones did we already post?
     for (const activity of activities) {
-      const alreadyPosted = await database.hasActivity({ id: activity.id });
-      const details = `(${activity.athlete.firstname}, ${activity.type}, \`${activity.name}\`)`;
-      const postOrNot = `, ${alreadyPosted ? 'not ' : ''}posting`;
-      logger.log(`${lp} Activity \`${activity.id}\` ${details} known${postOrNot}`);
+      const alreadyPosted = !!strava.knownActivities.find(({ id }) => id === activity.id);
+      this.logActivityKnown(activity, alreadyPosted);
 
       if (!alreadyPosted) {
         activitiesToPost.push(activity);
@@ -148,8 +160,10 @@ export class Slack {
     }
 
     if (activitiesToPost.length > 0) {
-      await this.postToChannel(installation, formatActivities(activitiesToPost));
-      await database.addActivities(activitiesToPost.map((a) => ({ id: a.id })));
+      strava.knownActivities.push(...activitiesToPost.map(getInstallationActivity));
+
+      await this.postToChannel(install, formatActivities(activitiesToPost));
+      await database.updateInstallation(install);
     }
 
     this.addToLastCheckedLog(now, activitiesToPost.length);

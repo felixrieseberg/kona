@@ -3,8 +3,18 @@ import { promisify } from 'util';
 import * as moment from 'moment';
 import * as LRU from 'lru-cache';
 
-import { StravaActivity, StringMap, StravaClubWithMembers, StravaClub, StravaMember, Athelete, InstallationClub } from './interfaces';
+import {
+  StravaActivity,
+  StringMap,
+  StravaClubWithMembers,
+  StravaClub,
+  StravaMember,
+  Athelete,
+  InstallationClub,
+  InstallationActivity
+} from './interfaces';
 import { logger } from './logger';
+import { getStravaTimestamp } from './utils/strava-ts';
 
 const listMembers = promisify(strava.clubs.listMembers);
 const listActivities = promisify(strava.clubs.listActivities);
@@ -167,4 +177,17 @@ export async function getActivities(clubs: Array<InstallationClub>, max: number 
   }
 
   return allActivities.slice(0, max);
+}
+
+/**
+ * StravaActivity comes in, InstallationActivity comes out
+ *
+ * @param {StravaActivity} input
+ * @returns {InstallationActivity}
+ */
+export function getInstallationActivity(input: StravaActivity): InstallationActivity {
+  return {
+    id: input.id,
+    ts: getStravaTimestamp(input.start_date)
+  };
 }

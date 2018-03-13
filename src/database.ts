@@ -3,12 +3,7 @@ import { BB_MONGO_STRING, BB_MONGO_DB_NAME } from './config';
 import { Installation } from './interfaces';
 import { logger } from './logger';
 
-export interface DatabaseActivity {
-  id: number;
-}
-
 enum Collections {
-  Activities = 'activities',
   Installations = 'installations'
 }
 
@@ -30,44 +25,6 @@ export class MongoDB {
   public isConnected(): boolean {
     if (!BB_MONGO_DB_NAME) return false;
     return this.client.isConnected(BB_MONGO_DB_NAME);
-  }
-
-  /**
-   * Does an activity exist in the database, indicating that we posted it already?
-   *
-   * @param {DatabaseActivity} activity
-   * @returns {Promise<boolean>}
-   */
-  public hasActivity(activity: DatabaseActivity): Promise<boolean> {
-    logger.log(`${lp} Trying to find activity \`${activity.id}\``);
-
-    return this.db
-      .collection(Collections.Activities)
-      .findOne(activity)
-      .then((response) => {
-        logger.log(`${lp} Find activity operation \`${activity.id}\` result: ${!!response ? 'found' : 'not found'}`);
-        return response;
-      });
-  }
-
-  /**
-   * Add activities to the database
-   *
-   * @param {Array<DatabaseActivity>} activities
-   * @returns {Promise<void>}
-   */
-  public addActivities(activities: Array<DatabaseActivity>) {
-    logger.log(`${lp} Adding ${activities.length} activities to \`${Collections.Activities}\``);
-
-    return this.db
-      .collection(Collections.Activities)
-      .insertMany(activities)
-      .then((response) => {
-        if (response && response.insertedCount !== undefined) {
-          logger.log(`${lp} Wrote ${response.insertedCount} to database`);
-          return response;
-        }
-      });
   }
 
   /**
