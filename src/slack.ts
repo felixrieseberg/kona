@@ -138,8 +138,9 @@ export class Slack {
     // We now have the activities for the last 7 days. Which ones did we already post?
     for (const activity of activities) {
       const alreadyPosted = await database.hasActivity({ id: activity.id });
-      const details = `${activity.athlete.firstname}, ${activity.type}, ${activity.name})`;
-      logger.log(`${lp} Activity \`${activity.id}\` (${details}) known, ${alreadyPosted ? 'not ' : ''}posting`);
+      const details = `(${activity.athlete.firstname}, ${activity.type}, \`${activity.name}\`)`;
+      const postOrNot = `, ${alreadyPosted ? 'not ' : ''}posting`;
+      logger.log(`${lp} Activity \`${activity.id}\` ${details} known${postOrNot}`);
 
       if (!alreadyPosted) {
         activitiesToPost.push(activity);

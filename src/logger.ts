@@ -69,7 +69,13 @@ export class Logger {
   }
 
   private async postToSlack(text: string, ...objects: Array<any>) {
+    // Should we post to Slack at all?
     if (!BB_LOGGER_WEBHOOK || !this.isSlackEnabled) {
+      return;
+    }
+
+    // Is a filter active?
+    if (this.disableLogFilter.find((v) => text.includes(v))) {
       return;
     }
 
