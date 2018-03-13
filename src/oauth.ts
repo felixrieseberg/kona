@@ -16,6 +16,7 @@ const lp = `:lock: OAuth:`;
  */
 export function getOptionsFromSlackData(data: SlackOAuthInstallationResponse): Installation {
   return {
+    installationTs: Date.now(),
     slack: {
       accessToken: data.access_token,
       teamId: data.team_id,
@@ -29,6 +30,7 @@ export function getOptionsFromSlackData(data: SlackOAuthInstallationResponse): I
       }
     },
     strava: {
+      knownActivities: [],
       clubs: []
     }
   };
