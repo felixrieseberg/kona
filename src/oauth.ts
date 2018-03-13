@@ -106,7 +106,7 @@ export async function authorizeStrava(ctx: Router.IRouterContext, next: () => Pr
       assignCookiesAndStateStrava(ctx, parsed);
     }
   } catch (error) {
-    console.warn(`${lp} Strava OAuth failed`, error);
+    logger.warn(`${lp} Strava OAuth failed`, error);
   }
 
   return ctx.redirect('/');
