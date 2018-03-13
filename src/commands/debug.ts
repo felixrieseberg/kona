@@ -4,13 +4,37 @@ import * as multiline from 'multiline';
 
 import { database } from '../database';
 import { logger } from '../logger';
+import { BB_DEBUG_TEAM } from '../config';
+import { postDidNotWork } from './help';
 
 const lp = `:wrench: *Command (Debug)*:`;
 
-export async function handleDebugRequest(ctx: Router.IRouterContext, checkLog: Array<number>) {
+export async function handleDebugRequest(ctx: Router.IRouterContext, text: string, checkLog: Array<number>) {
   const { team_id } = ctx.request.body;
   logger.log(`${lp} Handling "debug" request for team ${team_id}.`);
 
+  if (team_id !== BB_DEBUG_TEAM) {
+    return postDidNotWork(ctx);
+  }
+
+  if (text.includes(`enable log module`)) {
+    logger.handleEnableModuleCommand(ctx, text);
+  }
+
+  if (text.includes(`disable log module`)) {
+    logger.handleDisableModuleCommand(ctx, text);
+  }
+
+  if (text.includes(`enable log`)) {
+    logger.handleEnableCommand(ctx);
+  }
+
+  if (text.includes(`disable log`)) {
+    logger.handleDisableCommand(ctx);
+  }
+}
+
+function postDebugInfo(ctx: Router.IRouterContext, checkLog: Array<number>) {
   let text: string = multiline.stripIndent(() => {
     /*
       *:hammer_and_wrench: Debug Information*

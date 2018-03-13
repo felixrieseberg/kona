@@ -39,13 +39,13 @@ export class MongoDB {
    * @returns {Promise<boolean>}
    */
   public hasActivity(activity: DatabaseActivity): Promise<boolean> {
-    logger.log(`${lp} Trying to find activity ${activity.id} in ${Collections.Activities}`);
+    logger.log(`${lp} Trying to find activity \`${activity.id}\``);
 
     return this.db
       .collection(Collections.Activities)
       .findOne(activity)
       .then((response) => {
-        logger.log(`${lp} Find activity operation result: ${!!response ? 'found' : 'not found'}`);
+        logger.log(`${lp} Find activity operation \`${activity.id}\` result: ${!!response ? 'found' : 'not found'}`);
         return response;
       });
   }
@@ -57,7 +57,7 @@ export class MongoDB {
    * @returns {Promise<void>}
    */
   public addActivities(activities: Array<DatabaseActivity>) {
-    logger.log(`${lp} Adding ${activities.length} activities to ${Collections.Activities}`);
+    logger.log(`${lp} Adding ${activities.length} activities to \`${Collections.Activities}\``);
 
     return this.db
       .collection(Collections.Activities)

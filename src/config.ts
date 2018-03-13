@@ -44,3 +44,6 @@ export const BB_ROOT_URL = process.env.BB_ROOT_URL || 'https://www.kona.fit';
 
 // Logger webhook
 export const BB_LOGGER_WEBHOOK = process.env.BB_LOGGER_WEBHOOK;
+
+// Which team gets to debug?
+export const BB_DEBUG_TEAM = process.env.BB_DEBUG_TEAM || 'T2104UHEX';
