@@ -4,7 +4,7 @@ import { Installation } from './interfaces';
 import { logger } from './logger';
 
 enum Collections {
-  Installations = 'installations'
+  Installations = 'kona-installations'
 }
 
 const lp = `:floppy_disk: *Database*:`;
@@ -75,6 +75,13 @@ export class MongoDB {
       .findOne({ 'slack.teamId': teamId });
   }
 
+  /**
+   * Update a single installation
+   *
+   * @param {Installation} installation
+   * @returns {Promise<boolean>}
+   * @memberof MongoDB
+   */
   public async updateInstallation(installation: Installation): Promise<boolean> {
     if (!installation._id) {
       console.warn(`${lp} Tried to update installation, but data was missing _id field`);
@@ -86,6 +93,27 @@ export class MongoDB {
     return this.db
       .collection(Collections.Installations)
       .updateOne({ _id: installation._id }, { $set: installation })
+      .then((response) => !!response.result.ok);
+  }
+
+  /**
+   * Update a single installation
+   *
+   * @param {Installation} installation
+   * @returns {Promise<boolean>}
+   * @memberof MongoDB
+   */
+  public async removeInstallation(installation: Installation): Promise<boolean> {
+    if (!installation._id) {
+      console.warn(`${lp} Tried to remove installation, but data was missing _id field`);
+      return false;
+    }
+
+    logger.log(`${lp} Removing installation`, { mongoId: installation._id, team: installation.slack.teamId });
+
+    return this.db
+      .collection(Collections.Installations)
+      .remove({ _id: installation._id })
       .then((response) => !!response.result.ok);
   }
 

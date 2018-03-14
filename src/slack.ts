@@ -44,10 +44,33 @@ export class Slack {
    * @param {() => Promise<any>} next
    */
   public async handleSlackEvent(ctx: Router.IRouterContext, next: () => Promise<any>) {
-    logger.log(`${lp} Incoming Slack Event`, ctx.request.body);
+    const { body } = ctx.request;
+    const { event, team_id } = body || {} as any;
 
-    if (ctx.request.body.challenge) {
-      return ctx.response.body = ctx.request.body.challenge;
+    logger.log(`${lp} Incoming Slack Event`, body);
+
+    // Challenge
+    if (body.challenge) {
+      return ctx.response.body = body.challenge;
+    }
+
+    // Uninstallation
+    if (event && event.type && event.type === 'app_uninstalled') {
+      logger.log(`${lp} Team ${team_id} sent uninstallation event`);
+
+      try {
+        const installation = await database.getInstallationForTeam(team_id);
+
+        if (installation) {
+          await database.removeInstallation(installation);
+        } else {
+          logger.error(`${lp} Tried to uninstall for team, but no installation found`);
+        }
+      } catch (error) {
+        logger.error(`${lp} Tried to uninstall for team, but failed`, error);
+      }
+
+      return ctx.response.status = 200;
     }
 
     ctx.response.status = 400;
