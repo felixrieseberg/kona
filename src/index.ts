@@ -56,6 +56,7 @@ router.get('/oauth/slack', authorizeSlack);
 router.get('/oauth/strava', authorizeStrava);
 
 // Service
+router.post('/event', slack.handleSlackEvent);
 router.post('/webhook', slack.handleSlackIncoming);
 
 app.use(router.routes() as any);

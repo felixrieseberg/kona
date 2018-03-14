@@ -38,6 +38,22 @@ export class Slack {
   }
 
   /**
+   * Handles incoming Slack event pushes
+   *
+   * @param {Router.IRouterContext} ctx
+   * @param {() => Promise<any>} next
+   */
+  public async handleSlackEvent(ctx: Router.IRouterContext, next: () => Promise<any>) {
+    logger.log(`${lp} Incoming Slack Event`, ctx.request.body);
+
+    if (ctx.request.body.challenge) {
+      return ctx.response.body = ctx.request.body.challenge;
+    }
+
+    ctx.response.status = 400;
+  }
+
+  /**
    * Handles incoming Slack webhook requests
    *
    * @param {Router.IRouterContext} ctx
