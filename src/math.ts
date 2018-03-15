@@ -1,3 +1,5 @@
+import * as moment from 'moment';
+
 const METERS_TO_MILES = 0.000621371;
 const MPS_TO_KMH = 3.6;
 const KMH_TO_MPH = 0.621371;
@@ -6,8 +8,12 @@ export function metersToMiles(meters: number) {
   return (meters * METERS_TO_MILES).toFixed(2);
 }
 
-export function secondsToMinutes(seconds: number) {
-  return (seconds * 60).toFixed(2);
+export function secondsToDuration(seconds: number) {
+  const m = moment.duration(seconds, 'seconds');
+  const hours = `${m.hours()}`.padStart(2, '0');
+  const minutes = `${m.minutes()}`.padStart(2, '0');
+
+  return `${hours}:${minutes}`;
 }
 
 export function metersPerSecondToMilesPace(metersPerSecond: number) {
