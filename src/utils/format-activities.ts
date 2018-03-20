@@ -19,10 +19,10 @@ export function titleForActivity(a: StravaActivity): string {
   } else if (a.type === Activity.Yoga) {
     text = `for ${secondsToDuration(a.elapsed_time)}`;
   } else if (a.type === Activity.Run) {
-    text = `${distance} miles at a ${pace} pace (in ${secondsToDuration(a.elapsed_time)})`;
+    text = `${distance} miles at a ${pace} pace in ${secondsToDuration(a.elapsed_time)}`;
   }
 
-  return `${emoji} \`${a.name}\`: ${text} ${achievements}`;
+  return `${emoji} "${a.name}": ${text} ${achievements}`;
 }
 
 /**

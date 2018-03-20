@@ -36,14 +36,6 @@ export function metersPerSecondToPaceString(mps: number) {
   return milesPaceToString(metersPerSecondToMilesPace(mps));
 }
 
-/**
- * Returns the average meters per seconds
- *
- * @export
- * @param {number} meters
- * @param {number} seconds
- * @returns {number}
- */
 export function metersPerSecond(meters: number, seconds: number): number {
   return meters / seconds;
 }

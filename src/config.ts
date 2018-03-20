@@ -47,3 +47,7 @@ export const BB_LOGGER_WEBHOOK = process.env.BB_LOGGER_WEBHOOK;
 
 // Which team gets to debug?
 export const BB_DEBUG_TEAM = process.env.BB_DEBUG_TEAM || 'T2104UHEX';
+
+// Debug basic auth username and password
+export const BB_BA_USERNAME = process.env.BB_BA_USERNAME || '';
+export const BB_BA_PASSWOWRD = process.env.BB_BA_PASSWOWRD || '';

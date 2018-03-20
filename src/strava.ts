@@ -140,7 +140,8 @@ export async function getMembers(clubs: Array<InstallationClub>): Promise<Array<
 export async function getActivitiesSince(since: moment.Moment, clubs: Array<InstallationClub>): Promise<Array<StravaActivity>>  {
   const activities = await getActivities(clubs, 10);
   const newActivities = activities.filter((a) => {
-    return moment(a.start_date, STRAVA_TIME_FORMAT).isSameOrAfter(since);
+    // Strava can sometimes not send us a start date
+    return !a.start_date || moment(a.start_date, STRAVA_TIME_FORMAT).isSameOrAfter(since);
   });
 
   return newActivities;
