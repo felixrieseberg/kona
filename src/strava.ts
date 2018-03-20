@@ -9,7 +9,7 @@ import {
   StravaClubWithMembers,
   StravaClub,
   StravaMember,
-  Athelete,
+  Athlete,
   InstallationClub,
   InstallationActivity
 } from './interfaces';
@@ -61,16 +61,16 @@ export async function getClubWithCache({ id, token }: InstallationClub): Promise
 /**
  * List the clubs for a single athlete
  *
- * @param {Athelete} athelete
+ * @param {Athlete} athlete
  * @returns {Promise<Array<StravaClub>>}
  */
-export async function getClubsForAthelete(athelete: Athelete): Promise<Array<StravaClub>> {
+export async function getClubsForAthlete(athlete: Athlete): Promise<Array<StravaClub>> {
   const clubs = [];
 
-  logger.log(`${lp} Fetching clubs for athlete ${athelete.id} (${athelete.firstName})`);
+  logger.log(`${lp} Fetching clubs for athlete ${athlete.id} (${athlete.firstName})`);
 
   try {
-    const options = { access_token: athelete.accessToken, per_page: 100 };
+    const options = { access_token: athlete.accessToken, per_page: 100 };
     const response = await getAthleteClubs(options) || [];
 
     clubs.push(...response);
@@ -78,7 +78,7 @@ export async function getClubsForAthelete(athelete: Athelete): Promise<Array<Str
     console.error(`Failed to fetch clubs for athlete`, error);
   }
 
-  logger.log(`${lp} Found ${clubs.length} clubs for athlete ${athelete.id} (${athelete.firstName})`);
+  logger.log(`${lp} Found ${clubs.length} clubs for athlete ${athlete.id} (${athlete.firstName})`);
   return clubs;
 }
 

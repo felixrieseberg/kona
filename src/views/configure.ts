@@ -1,6 +1,6 @@
 import * as Router from 'koa-router';
 import { Installation, StravaClub } from '../interfaces';
-import { getClubs, getClubsForAthelete } from '../strava';
+import { getClubs, getClubsForAthlete } from '../strava';
 import { getStravaStatus } from '../utils/auth';
 import { database } from '../database';
 import { logger } from '../logger';
@@ -59,7 +59,7 @@ export async function renderConfigure(ctx: Router.IRouterContext, install: Insta
 
   if (athlete) {
     try {
-      const clubsForAthlete = await getClubsForAthelete(athlete);
+      const clubsForAthlete = await getClubsForAthlete(athlete);
 
       if (!clubsForAthlete || clubsForAthlete.length === 0) {
         hasNoClubs = true;

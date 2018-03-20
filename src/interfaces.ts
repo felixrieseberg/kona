@@ -245,7 +245,7 @@ export interface StravaOAuthResponse {
   };
 }
 
-export interface Athelete {
+export interface Athlete {
   id: number;
   accessToken: string;
   firstName: string;
