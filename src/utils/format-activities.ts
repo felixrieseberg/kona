@@ -1,11 +1,12 @@
 import { StravaActivity, SlackMessageAttachment, Activity } from '../interfaces';
-import { metersToMiles, metersPerSecondToPaceString, secondsToDuration } from '../math';
+import { metersToMiles, metersPerSecondToPaceString, secondsToDuration, metersPerSecond } from '../math';
 import { SPORTS_EMOJI } from '../strava';
 
 export function titleForActivity(a: StravaActivity): string {
   const emoji = SPORTS_EMOJI[a.type] || a.type;
   const distance = metersToMiles(a.distance);
-  const pace = metersPerSecondToPaceString(a.average_speed);
+  const avgSpeed = a.average_speed || metersPerSecond(a.distance, a.moving_time);
+  const pace = metersPerSecondToPaceString(avgSpeed);
   const achievements = a.achievement_count > 0
     ? `:trophy: ${a.achievement_count} achievements!`
     : '';

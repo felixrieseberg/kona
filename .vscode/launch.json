@@ -1,20 +1,13 @@
 {
     "version": "0.2.0",
     "configurations": [
-      {
-        "name": "Launch via NPM",
-        "type": "node",
-        "request": "launch",
-        "cwd": "${workspaceRoot}",
-        "runtimeExecutable": "npm",
-        "console": "integratedTerminal",
-        "runtimeArgs": [
-            "run-script", "debug"
-        ],
-        "port": 9229,
-        "outFiles": [
-          "${workspaceRoot}/dist/**/*"
-        ]
-      }
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Node: Nodemon",
+            "processId": "${command:PickProcess}",
+            "restart": true,
+            "protocol": "inspector",
+        },
     ]
-  }
+}

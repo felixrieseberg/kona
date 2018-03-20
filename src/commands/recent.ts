@@ -58,9 +58,9 @@ async function postRecentActivities(ctx: Router.IRouterContext, { strava }: Inst
  * @param {Router.IRouterContext} ctx
  * @param {() => Promise<any>} next
  */
-export async function handleRecentRequest(ctx: Router.IRouterContext, text: string) {
+export async function handleRecentRequest(ctx: Router.IRouterContext, text: string, teamId?: string) {
   try {
-    const { team_id } = ctx.request.body;
+    const { team_id } = teamId ? { team_id: teamId } : ctx.request.body;
     logger.log(`${lp} Handling "recent" request for team ${team_id}. Command was: \`${text}\``);
 
     const installation = await database.getInstallationForTeam(team_id);

@@ -1,5 +1,8 @@
 import * as moment from 'moment';
 
+
+// MPS Meters per second
+// KMH Kilometers per hour
 const METERS_TO_MILES = 0.000621371;
 const MPS_TO_KMH = 3.6;
 const KMH_TO_MPH = 0.621371;
@@ -16,8 +19,8 @@ export function secondsToDuration(seconds: number) {
   return `${hours}:${minutes}`;
 }
 
-export function metersPerSecondToMilesPace(metersPerSecond: number) {
-  const milesPerHour = metersPerSecond * MPS_TO_KMH * KMH_TO_MPH;
+export function metersPerSecondToMilesPace(mps: number) {
+  const milesPerHour = mps * MPS_TO_KMH * KMH_TO_MPH;
   return 60 / milesPerHour;
 }
 
@@ -29,6 +32,18 @@ export function milesPaceToString(milesPerHour: number) {
   return `${Math.floor(milesPerHour)}:${prettySeconds}`;
 }
 
-export function metersPerSecondToPaceString(metersPerSecond: number) {
-  return milesPaceToString(metersPerSecondToMilesPace(metersPerSecond));
+export function metersPerSecondToPaceString(mps: number) {
+  return milesPaceToString(metersPerSecondToMilesPace(mps));
+}
+
+/**
+ * Returns the average meters per seconds
+ *
+ * @export
+ * @param {number} meters
+ * @param {number} seconds
+ * @returns {number}
+ */
+export function metersPerSecond(meters: number, seconds: number): number {
+  return meters / seconds;
 }

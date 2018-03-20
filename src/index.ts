@@ -6,13 +6,16 @@ import * as serve from 'koa-static';
 import * as koaJson from 'koa-json';
 import * as session from 'koa-session';
 import * as views from 'koa-views';
+import * as auth from 'koa-basic-auth';
+import * as mount from 'koa-mount';
 
 import { Slack } from './slack';
 import { authorizeSlack, authorizeStrava } from './oauth';
-import { BB_SESSION_KEY, BB_ROOT_URL } from './config';
+import { BB_SESSION_KEY, BB_ROOT_URL, BB_BA_USERNAME, BB_BA_PASSWOWRD, BB_DEBUG_TEAM } from './config';
 import { renderMore, renderRoot } from './views/index';
 import { signOut } from './utils/auth';
 import { logger } from './logger';
+import { handleRecentRequest } from './commands/index';
 
 const app = new Koa();
 
@@ -46,6 +49,20 @@ app.use(async (ctx, next) => {
   await next();
 });
 
+// 401 handling
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (err) {
+    if (401 === err.status) {
+      ctx.status = 401;
+      ctx.set('WWW-Authenticate', 'Basic');
+    } else {
+      throw err;
+    }
+  }
+});
+
 // Pages you can _be_ on
 router.get('/', (ctx) => renderRoot(ctx));
 router.get('/more', (ctx) => renderMore(ctx));
@@ -58,6 +75,10 @@ router.get('/oauth/strava', authorizeStrava);
 // Service
 router.post('/event', slack.handleSlackEvent);
 router.post('/webhook', slack.handleSlackIncoming);
+
+// Debug
+app.use(mount('/debug', auth({ name: BB_BA_USERNAME, pass: BB_BA_PASSWOWRD })));
+router.get('/debug/recent', (ctx) => handleRecentRequest(ctx, 'recent', BB_DEBUG_TEAM));
 
 app.use(router.routes() as any);
 app.use(serve('static', { maxage: 1000 * 60 * 60 * 30 }));
