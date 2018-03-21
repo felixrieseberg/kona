@@ -171,7 +171,17 @@ export async function getActivities(clubs: Array<InstallationClub>, max: number 
       }
 
       logger.log(`${lp} Club ${id}: ${activities.length} activities found`);
-      allActivities.push(...activities);
+
+      // Strava sometimes refuses to give us ids. Those monsters.
+      const fixedActivites = activities.map((a) => {
+        if (!a.id) {
+          a.id = a.elapsed_time + a.moving_time + a.distance;
+        }
+
+        return a;
+      });
+
+      allActivities.push(...fixedActivites);
     } catch (error) {
       logger.error(`${id}: Failed to fetch activities`, error);
     }
